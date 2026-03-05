@@ -11,17 +11,14 @@ import { ContactTimeModal } from "./components/dashboard/ContactTimeModal";
 import { DowntimeAnalysis } from "./components/dashboard/DowntimeAnalysis";
 import { DowntimePressModal } from "./components/dashboard/DowntimePressModal";
 import { FleetOEEModal } from "./components/dashboard/FleetOEEModal";
+import { GasModal } from "./components/dashboard/GasModal";
 import { KPIRibbon } from "./components/dashboard/KPIRibbon";
 import { OperatorView } from "./components/dashboard/OperatorView";
 import { PressDetailModal } from "./components/dashboard/PressDetailModal";
 import { PressFleetTable } from "./components/dashboard/PressFleetTable";
 import { PressKgHModal } from "./components/dashboard/PressKgHModal";
 import { TopNavBar } from "./components/dashboard/TopNavBar";
-import {
-  TopAlloysTable,
-  TopDiesTable,
-  WIPAgingDonut,
-} from "./components/dashboard/TopTablesAndWIP";
+import { WIPAgingDonut } from "./components/dashboard/TopTablesAndWIP";
 import { TotalBacklogModal } from "./components/dashboard/TotalBacklogModal";
 import { TotalDelayModal } from "./components/dashboard/TotalDelayModal";
 import { TotalEnergyModal } from "./components/dashboard/TotalEnergyModal";
@@ -34,20 +31,27 @@ import { TotalUtilModal } from "./components/dashboard/TotalUtilModal";
 import { TotalWIPModal } from "./components/dashboard/TotalWIPModal";
 import { WIPAgingPressModal } from "./components/dashboard/WIPAgingPressModal";
 
-import { CostTab } from "./components/tabs/CostTab";
-import { DowntimeTab } from "./components/tabs/DowntimeTab";
-import { MachineTab } from "./components/tabs/MachineTab";
-import { MultiPlantTab } from "./components/tabs/MultiPlantTab";
+import { ContactTimeTab } from "./components/tabs/ContactTimeTab";
+import { DelayDowntimeTab } from "./components/tabs/DelayDowntimeTab";
+import { DieLoadUnloadTab } from "./components/tabs/DieLoadUnloadTab";
+import { EnergyTab } from "./components/tabs/EnergyTab";
+import { FGSStockTab } from "./components/tabs/FGSStockTab";
+import { FleetOEETab } from "./components/tabs/FleetOEETab";
+import { GasTab } from "./components/tabs/GasTab";
 import { OEETab } from "./components/tabs/OEETab";
 import { OrdersTab } from "./components/tabs/OrdersTab";
+import { PPPlanVsActualTab } from "./components/tabs/PPPlanVsActualTab";
 import { ProductionTab } from "./components/tabs/ProductionTab";
 import { QualityTab } from "./components/tabs/QualityTab";
-import { StrategicTab } from "./components/tabs/StrategicTab";
+import { RecoveryTab } from "./components/tabs/RecoveryTab";
+import { TotalInputTab } from "./components/tabs/TotalInputTab";
+import { TotalOutputTab } from "./components/tabs/TotalOutputTab";
+import { TotalScrapTab } from "./components/tabs/TotalScrapTab";
+import { TotalUtilTab } from "./components/tabs/TotalUtilTab";
+import { WIPStockTab } from "./components/tabs/WIPStockTab";
 
 import {
-  useActiveAlarms,
   useAllDowntimeEvents,
-  useAllPlants,
   useAllPresses,
   useOEEData,
   useOrdersByStatus,
@@ -68,27 +72,45 @@ type Role = "Operator" | "Management" | "CEO";
 
 type ManagementTab =
   | "Dashboard"
+  | "Total Input"
+  | "Total Output"
+  | "Total Scrap"
+  | "Recovery"
+  | "FGS Stock"
+  | "WIP Stock"
+  | "Contact Time"
+  | "Delay & Downtime"
+  | "PP (Plan/Act)"
+  | "Die (Load/Unload)"
+  | "Fleet OEE"
+  | "Total UTIL"
+  | "Energy"
+  | "Gas Consumption"
   | "Production"
   | "OEE"
-  | "Machine"
   | "Orders"
-  | "Quality"
-  | "Downtime"
-  | "Cost"
-  | "Multi-Plant"
-  | "Strategic";
+  | "Quality";
 
 const MANAGEMENT_TABS: ManagementTab[] = [
   "Dashboard",
+  "Total Input",
+  "Total Output",
+  "Total Scrap",
+  "Recovery",
+  "FGS Stock",
+  "WIP Stock",
+  "Contact Time",
+  "Delay & Downtime",
+  "PP (Plan/Act)",
+  "Die (Load/Unload)",
+  "Fleet OEE",
+  "Total UTIL",
+  "Energy",
+  "Gas Consumption",
   "Production",
   "OEE",
-  "Machine",
   "Orders",
   "Quality",
-  "Downtime",
-  "Cost",
-  "Multi-Plant",
-  "Strategic",
 ];
 
 // ─── Inner app (has access to FilterContext) ────────────────────────────────
@@ -111,6 +133,7 @@ function AppInner() {
   const [showTotalUtilModal, setShowTotalUtilModal] = useState(false);
   const [showTotalEnergyModal, setShowTotalEnergyModal] = useState(false);
   const [showTotalBacklogModal, setShowTotalBacklogModal] = useState(false);
+  const [showGasModal, setShowGasModal] = useState(false);
   const [downtimePressModal, setDowntimePressModal] = useState<{
     name: string;
     color: string;
@@ -186,6 +209,7 @@ function AppInner() {
           Math.max(30, applyLiveDelta(prev.totalUtil, 0.01)),
         ),
         totalEnergy: Math.max(0, applyLiveDelta(prev.totalEnergy, 0.02)),
+        totalGas: Math.max(0, applyLiveDelta(prev.totalGas, 0.02)),
       }));
       setLastUpdated(new Date());
     }, 30000);
@@ -203,8 +227,6 @@ function AppInner() {
 
   // ---------- Backend data hooks (for Management tabs) ----------
   const pressesQuery = useAllPresses();
-  const plantsQuery = useAllPlants();
-  const alarmsQuery = useActiveAlarms();
   const downtimeEventsQuery = useAllDowntimeEvents();
   const ordersQuery = useOrdersByStatus();
   const overdueDiesQuery = useOverdueDies();
@@ -226,22 +248,12 @@ function AppInner() {
   const oeeDataQuery = useOEEData(backendPressIds);
   const qualityRecordsQuery = useQualityRecords(alloys);
 
-  const backendPlants = plantsQuery.data ?? [];
-  const backendAlarms = alarmsQuery.data ?? [];
   const backendDowntimeEvents = downtimeEventsQuery.data ?? [];
   const backendOrders = ordersQuery.data ?? [];
   const backendOverdueDies = overdueDiesQuery.data ?? [];
   const backendProductionData = productionMetricsQuery.data ?? {};
   const backendOEEData = oeeDataQuery.data ?? {};
   const backendQualityRecords = qualityRecordsQuery.data ?? [];
-
-  const isBackendLoading =
-    pressesQuery.isLoading ||
-    plantsQuery.isLoading ||
-    alarmsQuery.isLoading ||
-    downtimeEventsQuery.isLoading ||
-    ordersQuery.isLoading ||
-    overdueDiesQuery.isLoading;
 
   // Filter badge string
   const filterBadge = `Shift ${shift} · ${period} · ${date}`;
@@ -275,6 +287,7 @@ function AppInner() {
         onFleetOEEClick={() => setShowFleetOEEModal(true)}
         onTotalUtilClick={() => setShowTotalUtilModal(true)}
         onTotalEnergyClick={() => setShowTotalEnergyModal(true)}
+        onTotalGasClick={() => setShowGasModal(true)}
       />
 
       {/* KPI Drilldown Modals */}
@@ -342,6 +355,11 @@ function AppInner() {
         open={showTotalBacklogModal}
         onClose={() => setShowTotalBacklogModal(false)}
         totalBacklog={kpis.totalBacklog ?? 0}
+      />
+      <GasModal
+        open={showGasModal}
+        onClose={() => setShowGasModal(false)}
+        totalGas={kpis.totalGas}
       />
       <DowntimePressModal
         open={!!downtimePressModal}
@@ -440,16 +458,7 @@ function AppInner() {
                   />
                 </div>
 
-                {/* Row 3: Top 5 Dies | Top 5 Alloys — 50/50 */}
-                <div
-                  className="grid gap-1.5 px-1.5 pb-1.5"
-                  style={{ gridTemplateColumns: "1fr 1fr" }}
-                >
-                  <TopDiesTable dies={filteredData.topDies} />
-                  <TopAlloysTable alloys={filteredData.topAlloys} />
-                </div>
-
-                {/* Row 4: Downtime Analysis (55%) | WIP Aging (45%) */}
+                {/* Row 3: Downtime Analysis (55%) | WIP Aging (45%) */}
                 <div
                   className="grid gap-1.5 px-1.5 pb-1.5"
                   style={{ gridTemplateColumns: "55fr 45fr" }}
@@ -507,17 +516,6 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Machine" && (
-              <MachineTab
-                key={filterBadge}
-                presses={backendPresses}
-                alarms={backendAlarms}
-                isLoading={pressesQuery.isLoading || alarmsQuery.isLoading}
-                filterBadge={filterBadge}
-                mockPresses={presses}
-              />
-            )}
-
             {activeTab === "Orders" && (
               <OrdersTab
                 key={filterBadge}
@@ -525,6 +523,128 @@ function AppInner() {
                 overdueDies={backendOverdueDies}
                 isLoading={ordersQuery.isLoading || overdueDiesQuery.isLoading}
                 filterBadge={filterBadge}
+              />
+            )}
+
+            {activeTab === "Total Input" && (
+              <TotalInputTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalInput={kpis.totalInput}
+              />
+            )}
+
+            {activeTab === "Total Output" && (
+              <TotalOutputTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalOutput={kpis.totalOutput}
+              />
+            )}
+
+            {activeTab === "Total Scrap" && (
+              <TotalScrapTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalScrap={kpis.totalScrap}
+              />
+            )}
+
+            {activeTab === "Recovery" && (
+              <RecoveryTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalRecovery={kpis.totalRecovery}
+              />
+            )}
+
+            {activeTab === "FGS Stock" && (
+              <FGSStockTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalFGS={kpis.totalFGS}
+              />
+            )}
+
+            {activeTab === "WIP Stock" && (
+              <WIPStockTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalWIP={kpis.totalWIP}
+              />
+            )}
+
+            {activeTab === "Contact Time" && (
+              <ContactTimeTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                contactTime={kpis.contactTime}
+              />
+            )}
+
+            {activeTab === "Delay & Downtime" && (
+              <DelayDowntimeTab
+                key={filterBadge}
+                presses={presses}
+                backendPresses={backendPresses}
+                downtimeEvents={backendDowntimeEvents}
+                isLoading={
+                  pressesQuery.isLoading || downtimeEventsQuery.isLoading
+                }
+                filterBadge={filterBadge}
+                totalDelay={kpis.totalDelay}
+                downtimeCategories={filteredData.downtimeCategories}
+                totalDowntimeHrs={filteredData.totalDowntimeHrs}
+              />
+            )}
+
+            {activeTab === "PP (Plan/Act)" && (
+              <PPPlanVsActualTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+              />
+            )}
+
+            {activeTab === "Die (Load/Unload)" && (
+              <DieLoadUnloadTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+              />
+            )}
+
+            {activeTab === "Fleet OEE" && (
+              <FleetOEETab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                fleetOEE={kpis.fleetOEE}
+              />
+            )}
+
+            {activeTab === "Total UTIL" && (
+              <TotalUtilTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalUtil={kpis.totalUtil}
+              />
+            )}
+
+            {activeTab === "Energy" && (
+              <EnergyTab
+                key={filterBadge}
+                presses={presses}
+                filterBadge={filterBadge}
+                totalEnergy={kpis.totalEnergy}
               />
             )}
 
@@ -541,57 +661,12 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Downtime" && (
-              <DowntimeTab
+            {activeTab === "Gas Consumption" && (
+              <GasTab
                 key={filterBadge}
-                presses={backendPresses}
-                downtimeEvents={backendDowntimeEvents}
-                isLoading={
-                  pressesQuery.isLoading || downtimeEventsQuery.isLoading
-                }
+                presses={presses}
                 filterBadge={filterBadge}
-                downtimeCategories={filteredData.downtimeCategories}
-                totalDowntimeHrs={filteredData.totalDowntimeHrs}
-              />
-            )}
-
-            {activeTab === "Cost" && (
-              <CostTab
-                key={filterBadge}
-                presses={backendPresses}
-                oeeData={backendOEEData}
-                isLoading={pressesQuery.isLoading || oeeDataQuery.isLoading}
-                filterBadge={filterBadge}
-                mockPresses={presses}
-                kpis={kpis}
-              />
-            )}
-
-            {activeTab === "Multi-Plant" && (
-              <MultiPlantTab
-                key={filterBadge}
-                plants={backendPlants}
-                presses={backendPresses}
-                oeeData={backendOEEData}
-                productionData={backendProductionData}
-                isLoading={isBackendLoading}
-                filterBadge={filterBadge}
-                mockPresses={presses}
-              />
-            )}
-
-            {activeTab === "Strategic" && (
-              <StrategicTab
-                key={filterBadge}
-                presses={backendPresses}
-                plants={backendPlants}
-                oeeData={backendOEEData}
-                productionData={backendProductionData}
-                orders={backendOrders}
-                isLoading={isBackendLoading}
-                filterBadge={filterBadge}
-                strategicKPIs={filteredData.strategicKPIs}
-                mockPresses={presses}
+                totalGas={kpis.totalGas}
               />
             )}
           </div>

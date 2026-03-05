@@ -136,14 +136,6 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
 
   const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
 
-  // Format date for display
-  const displayDate = date
-    ? (() => {
-        const parts = date.split("-");
-        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-      })()
-    : "—";
-
   const roleLabel =
     role === "CEO"
       ? "CEO View"
@@ -215,27 +207,19 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
         {/* Center: Date / Shift selector / Period selector */}
         <div className="flex items-center gap-2 text-[11px]">
           {/* Date picker */}
-          <div className="flex items-center gap-1.5 relative">
-            <Calendar size={11} style={{ color: "#64748b" }} />
-            <span
-              className="font-mono font-semibold text-[11px]"
-              style={{ color: "#1e293b" }}
-            >
-              {displayDate}
-            </span>
+          <div
+            className="flex items-center gap-1 px-2 py-0.5 rounded border"
+            style={{ background: "#f8fafc", borderColor: "#cbd5e1" }}
+          >
+            <Calendar size={11} style={{ color: "#64748b", flexShrink: 0 }} />
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               data-ocid="filter.date.input"
               title="Select Date"
-              style={{
-                position: "absolute",
-                inset: 0,
-                opacity: 0,
-                cursor: "pointer",
-                width: "100%",
-              }}
+              className="font-mono font-semibold text-[11px] bg-transparent border-none outline-none cursor-pointer"
+              style={{ color: "#1e293b", minWidth: 0 }}
             />
           </div>
 

@@ -392,6 +392,9 @@ export function getFilteredMockData(
       (275 * seed.kgHrMultiplier * pm.energy).toFixed(2),
     ),
     totalBacklog: Number.parseFloat((3500 * pm.backlog).toFixed(0)),
+    totalGas: Number.parseFloat(
+      (18400 * seed.kgHrMultiplier * pm.energy).toFixed(2),
+    ),
   };
 
   // Downtime categories — scaled by shift downtime multiplier

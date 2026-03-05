@@ -5,6 +5,7 @@ import {
   Battery,
   Box,
   Clock,
+  Flame,
   Gauge,
   Package,
   Recycle,
@@ -39,6 +40,7 @@ interface KPIRibbonProps {
     fleetOEE: number;
     totalUtil: number;
     totalEnergy: number;
+    totalGas: number;
     // legacy (still kept for modals)
     totalBacklog?: number;
   };
@@ -54,6 +56,7 @@ interface KPIRibbonProps {
   onFleetOEEClick?: () => void;
   onTotalUtilClick?: () => void;
   onTotalEnergyClick?: () => void;
+  onTotalGasClick?: () => void;
 }
 
 // Expand arrow icon for clickable tiles
@@ -92,6 +95,7 @@ export function KPIRibbon({
   onFleetOEEClick,
   onTotalUtilClick,
   onTotalEnergyClick,
+  onTotalGasClick,
 }: KPIRibbonProps) {
   const tiles: KPITile[] = [
     {
@@ -225,6 +229,17 @@ export function KPIRibbon({
       borderColor: "#f59e0b",
       onClick: onTotalEnergyClick,
       ocid: "kpi.total_energy.button",
+    },
+    {
+      label: "Gas",
+      value: data.totalGas.toFixed(2),
+      unit: "Nm³",
+      icon: <Flame size={14} />,
+      color: "#9333ea",
+      bgColor: "#faf5ff",
+      borderColor: "#a855f7",
+      onClick: onTotalGasClick,
+      ocid: "kpi.gas.button",
     },
   ];
 
