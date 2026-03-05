@@ -103,23 +103,36 @@ export function PPPlanVsActualTab({
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
 
   // Build press-wise chart data
-  const pressChartData = presses.map((p, i) => ({
-    press: `${p.id}`,
-    pressName: p.name,
-    planned: p.ppPlanBillets,
-    actual: p.ppActBillets,
-    achievement:
-      p.ppPlanBillets > 0
-        ? Number.parseFloat(
-            ((p.ppActBillets / p.ppPlanBillets) * 100).toFixed(1),
-          )
-        : 0,
-    shortfall: Math.max(0, p.ppPlanBillets - p.ppActBillets),
-    alloy: p.alloyGrade,
-    dieNo: p.dieNumber,
-    color: PRESS_COLORS[i],
-    status: p.status,
-  }));
+  const pressChartData = presses.map((p, i) => {
+    const inputKgH = p.kgPerHour;
+    const outputKgH = Number.parseFloat(
+      (inputKgH * (p.recovery / 100)).toFixed(1),
+    );
+    const ioRatio =
+      inputKgH > 0
+        ? Number.parseFloat(((outputKgH / inputKgH) * 100).toFixed(1))
+        : 0;
+    return {
+      press: `${p.id}`,
+      pressName: p.name,
+      planned: p.ppPlanBillets,
+      actual: p.ppActBillets,
+      achievement:
+        p.ppPlanBillets > 0
+          ? Number.parseFloat(
+              ((p.ppActBillets / p.ppPlanBillets) * 100).toFixed(1),
+            )
+          : 0,
+      shortfall: Math.max(0, p.ppPlanBillets - p.ppActBillets),
+      alloy: p.alloyGrade,
+      dieNo: p.dieNumber,
+      color: PRESS_COLORS[i],
+      status: p.status,
+      inputKgH,
+      outputKgH,
+      ioRatio,
+    };
+  });
 
   const totalPlanned = pressChartData.reduce((a, b) => a + b.planned, 0);
   const totalActual = pressChartData.reduce((a, b) => a + b.actual, 0);
@@ -281,6 +294,7 @@ export function PPPlanVsActualTab({
                       "DIE NO",
                       "PLAN SHOTS",
                       "ACTUAL SHOTS",
+                      "INPUT vs OUTPUT (Kg/H)",
                       "ACHIEVEMENT %",
                       "SHORTFALL",
                       "STATUS",
@@ -361,6 +375,68 @@ export function PPPlanVsActualTab({
                           }}
                         >
                           {row.actual}
+                        </td>
+                        <td className="px-3 py-2.5 min-w-[140px]">
+                          <div className="flex flex-col gap-0.5">
+                            <div
+                              className="flex items-center justify-between text-[10px] tabular-nums font-semibold"
+                              style={{
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              <span style={{ color: "#2563eb" }}>
+                                {row.inputKgH}
+                              </span>
+                              <span
+                                style={{
+                                  color: "#94a3b8",
+                                  fontSize: "9px",
+                                  margin: "0 3px",
+                                }}
+                              >
+                                →
+                              </span>
+                              <span style={{ color: "#16a34a" }}>
+                                {row.outputKgH}
+                              </span>
+                              <span
+                                className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded"
+                                style={{
+                                  background:
+                                    row.ioRatio >= 90
+                                      ? "#f0fdf4"
+                                      : row.ioRatio >= 80
+                                        ? "#fffbeb"
+                                        : "#fef2f2",
+                                  color:
+                                    row.ioRatio >= 90
+                                      ? "#16a34a"
+                                      : row.ioRatio >= 80
+                                        ? "#d97706"
+                                        : "#dc2626",
+                                }}
+                              >
+                                {row.ioRatio}%
+                              </span>
+                            </div>
+                            <div
+                              className="w-full rounded-full h-1.5 overflow-hidden"
+                              style={{ background: "#e2e8f0" }}
+                            >
+                              <div
+                                className="h-1.5 rounded-full transition-all"
+                                style={{
+                                  width: `${Math.min(row.ioRatio, 100)}%`,
+                                  background:
+                                    row.ioRatio >= 90
+                                      ? "#22c55e"
+                                      : row.ioRatio >= 80
+                                        ? "#f59e0b"
+                                        : "#ef4444",
+                                }}
+                              />
+                            </div>
+                          </div>
                         </td>
                         <td className="px-3 py-2.5">
                           <span
@@ -445,6 +521,82 @@ export function PPPlanVsActualTab({
                       }}
                     >
                       {totalActual}
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {(() => {
+                        const totalInput = pressChartData.reduce(
+                          (a, b) => a + b.inputKgH,
+                          0,
+                        );
+                        const totalOutput = pressChartData.reduce(
+                          (a, b) => a + b.outputKgH,
+                          0,
+                        );
+                        const fleetIORatio =
+                          totalInput > 0
+                            ? Number.parseFloat(
+                                ((totalOutput / totalInput) * 100).toFixed(1),
+                              )
+                            : 0;
+                        return (
+                          <div className="flex flex-col gap-0.5">
+                            <div
+                              className="flex items-center gap-1 text-[10px] tabular-nums font-semibold"
+                              style={{
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              <span style={{ color: "#2563eb" }}>
+                                {totalInput.toFixed(0)}
+                              </span>
+                              <span
+                                style={{ color: "#94a3b8", fontSize: "9px" }}
+                              >
+                                →
+                              </span>
+                              <span style={{ color: "#16a34a" }}>
+                                {totalOutput.toFixed(0)}
+                              </span>
+                              <span
+                                className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded"
+                                style={{
+                                  background:
+                                    fleetIORatio >= 90
+                                      ? "#f0fdf4"
+                                      : fleetIORatio >= 80
+                                        ? "#fffbeb"
+                                        : "#fef2f2",
+                                  color:
+                                    fleetIORatio >= 90
+                                      ? "#16a34a"
+                                      : fleetIORatio >= 80
+                                        ? "#d97706"
+                                        : "#dc2626",
+                                }}
+                              >
+                                {fleetIORatio}%
+                              </span>
+                            </div>
+                            <div
+                              className="w-full rounded-full h-1.5 overflow-hidden"
+                              style={{ background: "#e2e8f0" }}
+                            >
+                              <div
+                                className="h-1.5 rounded-full"
+                                style={{
+                                  width: `${Math.min(fleetIORatio, 100)}%`,
+                                  background:
+                                    fleetIORatio >= 90
+                                      ? "#22c55e"
+                                      : fleetIORatio >= 80
+                                        ? "#f59e0b"
+                                        : "#ef4444",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-3 py-2.5">
                       <span

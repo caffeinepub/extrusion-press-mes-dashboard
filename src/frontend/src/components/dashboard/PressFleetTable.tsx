@@ -73,128 +73,20 @@ function RecoveryBadge({ recovery }: { recovery: number }) {
   );
 }
 
-// ─── PP Bar (Production Plan Numbers – billet/shot counts) ───────────────────
-function PPBar({
-  planBillets,
-  actBillets,
-}: {
-  planBillets: number;
-  actBillets: number;
-}) {
-  const pct =
-    planBillets > 0 ? Math.min((actBillets / planBillets) * 100, 100) : 0;
-  const color = pct >= 90 ? "#22c55e" : pct >= 70 ? "#f59e0b" : "#ef4444";
-  const bgTrack = pct >= 90 ? "#dcfce7" : pct >= 70 ? "#fef3c7" : "#fee2e2";
-
-  return (
-    <div className="flex flex-col gap-0.5 min-w-[80px]">
-      {/* Numbers row */}
-      <div className="flex items-center justify-between gap-1">
-        <span
-          className="text-[10px] font-black tabular-nums"
-          style={{ color, fontFamily: '"JetBrains Mono", monospace' }}
-        >
-          {actBillets}
-        </span>
-        <span className="text-[8px] font-semibold" style={{ color: "#94a3b8" }}>
-          /
-        </span>
-        <span
-          className="text-[10px] font-semibold tabular-nums"
-          style={{
-            color: "#64748b",
-            fontFamily: '"JetBrains Mono", monospace',
-          }}
-        >
-          {planBillets}
-        </span>
-        <span
-          className="text-[8px] font-bold ml-0.5"
-          style={{ color: "#94a3b8" }}
-        >
-          shots
-        </span>
-      </div>
-      {/* Progress bar */}
-      <div
-        className="h-1.5 rounded-full overflow-hidden"
-        style={{ background: bgTrack }}
-      >
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, background: color }}
-        />
-      </div>
-      {/* % label */}
-      <div className="text-right">
-        <span
-          className="text-[8px] font-bold tabular-nums"
-          style={{ color, fontFamily: '"JetBrains Mono", monospace' }}
-        >
-          {pct.toFixed(0)}%
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ─── Die Load / Unload ────────────────────────────────────────────────────────
-function DieLoadUnload({ load, unload }: { load: number; unload: number }) {
-  const loadColor = load > 20 ? "#ef4444" : load > 15 ? "#f59e0b" : "#22c55e";
-  const unloadColor =
-    unload > 15 ? "#ef4444" : unload > 10 ? "#f59e0b" : "#22c55e";
-
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-0.5">
-        <span
-          className="text-[8px] font-bold uppercase px-0.5 rounded"
-          style={{ color: "#ffffff", background: "#3b82f6" }}
-        >
-          L
-        </span>
-        <span
-          className="text-[10px] font-mono tabular-nums font-semibold"
-          style={{ color: loadColor }}
-        >
-          {load > 0 ? `${load}m` : "—"}
-        </span>
-      </div>
-      <div className="flex items-center gap-0.5">
-        <span
-          className="text-[8px] font-bold uppercase px-0.5 rounded"
-          style={{ color: "#ffffff", background: "#8b5cf6" }}
-        >
-          U
-        </span>
-        <span
-          className="text-[10px] font-mono tabular-nums font-semibold"
-          style={{ color: unloadColor }}
-        >
-          {unload > 0 ? `${unload}m` : "—"}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // ─── Table primitives ─────────────────────────────────────────────────────────
 const TH = ({
   children,
   right,
   center,
   className = "",
-  rowSpan,
 }: {
   children?: React.ReactNode;
   right?: boolean;
   center?: boolean;
   className?: string;
-  rowSpan?: number;
 }) => (
   <th
     className={`px-2 py-2 text-[9px] font-bold uppercase whitespace-nowrap ${right ? "text-right" : center ? "text-center" : "text-left"} ${className}`}
-    rowSpan={rowSpan}
     style={{
       color: "#475569",
       background: "#f1f5f9",
@@ -227,25 +119,6 @@ const TD = ({
   >
     {children}
   </td>
-);
-
-// ─── Group Header ─────────────────────────────────────────────────────────────
-const GroupTH = ({
-  children,
-  colSpan,
-  color,
-}: {
-  children: React.ReactNode;
-  colSpan: number;
-  color: string;
-}) => (
-  <th
-    colSpan={colSpan}
-    className="px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-center border-b border-r border-[#e2e8f0]"
-    style={{ background: color, color: "#ffffff" }}
-  >
-    {children}
-  </th>
 );
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -290,21 +163,6 @@ export function PressFleetTable({
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {/* PP Legend */}
-          <div
-            className="flex items-center gap-1 px-2 py-0.5 rounded border text-[8px] font-semibold"
-            style={{
-              borderColor: "#e2e8f0",
-              color: "#64748b",
-              background: "#f8fafc",
-            }}
-          >
-            <span
-              className="w-2 h-2 rounded-sm inline-block"
-              style={{ background: "#3b82f6" }}
-            />
-            PP = Production Plan (Shots/Billets)
-          </div>
           <div className="flex items-center gap-1.5">
             <div
               className="w-1.5 h-1.5 rounded-full"
@@ -325,39 +183,23 @@ export function PressFleetTable({
 
       {/* ── Scrollable Table ── */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse" style={{ minWidth: 920 }}>
-          {/* Column Group Headers */}
+        <table className="w-full border-collapse" style={{ minWidth: 1080 }}>
           <thead>
             <tr>
-              <TH className="border-r-2 border-[#d1d5db]" rowSpan={2}>
-                {/* Press identity — no group header */}
-              </TH>
-              <GroupTH colSpan={2} color="#1d4ed8">
-                Status
-              </GroupTH>
-              <GroupTH colSpan={3} color="#0369a1">
-                Production Plan
-              </GroupTH>
-              <GroupTH colSpan={2} color="#6d28d9">
-                Die Operations
-              </GroupTH>
-              <GroupTH colSpan={3} color="#0f766e">
-                Performance
-              </GroupTH>
-            </tr>
-            {/* Sub-headers */}
-            <tr>
-              {/* Status group */}
+              {/* Press identity */}
+              <TH className="border-r-2 border-[#d1d5db]">Press</TH>
+              {/* Columns in exact sequence from spec */}
               <TH center>Status</TH>
               <TH right>Die Kg/H</TH>
-              {/* Production Plan group */}
-              <TH>PP Plan / Act (Shots)</TH>
               <TH right>Press Kg/H</TH>
+              <TH right>Input (Mt)</TH>
+              <TH right>Output (Mt)</TH>
               <TH right>Contact Time</TH>
-              {/* Die Ops group */}
-              <TH center>Die (L/U)</TH>
               <TH right>Downtime</TH>
-              {/* Performance group */}
+              <TH right>PP Planned</TH>
+              <TH right>PP Actual</TH>
+              <TH right>Die Load</TH>
+              <TH right>Die Unload</TH>
               <TH right>OEE %</TH>
               <TH right>Recovery %</TH>
             </tr>
@@ -444,14 +286,6 @@ export function PressFleetTable({
                     </span>
                   </TD>
 
-                  {/* ── PP Plan / Act (shots) ── */}
-                  <TD highlight={!isDown}>
-                    <PPBar
-                      planBillets={p.ppPlanBillets}
-                      actBillets={p.ppActBillets}
-                    />
-                  </TD>
-
                   {/* ── Press Kg/H ── */}
                   <TD right>
                     <span
@@ -462,6 +296,32 @@ export function PressFleetTable({
                       }}
                     >
                       {p.kgPerHour > 0 ? p.kgPerHour.toLocaleString() : "—"}
+                    </span>
+                  </TD>
+
+                  {/* ── Input (Mt) ── */}
+                  <TD right>
+                    <span
+                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      style={{
+                        color: p.inputMt > 0 ? "#0369a1" : "#cbd5e1",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {p.inputMt > 0 ? p.inputMt.toFixed(2) : "—"}
+                    </span>
+                  </TD>
+
+                  {/* ── Output (Mt) ── */}
+                  <TD right>
+                    <span
+                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      style={{
+                        color: p.outputMt > 0 ? "#0f766e" : "#cbd5e1",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {p.outputMt > 0 ? p.outputMt.toFixed(2) : "—"}
                     </span>
                   </TD>
 
@@ -476,11 +336,6 @@ export function PressFleetTable({
                     >
                       {p.contactTime > 0 ? `${p.contactTime}s` : "—"}
                     </span>
-                  </TD>
-
-                  {/* ── Die Load/Unload ── */}
-                  <TD center>
-                    <DieLoadUnload load={p.dieLoad} unload={p.dieUnload} />
                   </TD>
 
                   {/* ── Downtime ── */}
@@ -499,6 +354,160 @@ export function PressFleetTable({
                     >
                       {p.downtime > 0 ? `${p.downtime} min` : "—"}
                     </span>
+                  </TD>
+
+                  {/* ── PP Planned ── */}
+                  <TD right highlight={!isDown}>
+                    <div className="flex flex-col items-end gap-0.5">
+                      <span
+                        className="text-[11px] font-semibold tabular-nums"
+                        style={{
+                          color: "#64748b",
+                          fontFamily: '"JetBrains Mono", monospace',
+                        }}
+                      >
+                        {p.ppPlanBillets}
+                      </span>
+                      <span
+                        className="text-[8px] font-medium"
+                        style={{ color: "#94a3b8" }}
+                      >
+                        shots
+                      </span>
+                    </div>
+                  </TD>
+
+                  {/* ── PP Actual ── */}
+                  <TD right highlight={!isDown}>
+                    <div className="flex flex-col items-end gap-0.5">
+                      {(() => {
+                        const pct =
+                          p.ppPlanBillets > 0
+                            ? Math.min(
+                                (p.ppActBillets / p.ppPlanBillets) * 100,
+                                100,
+                              )
+                            : 0;
+                        const color =
+                          pct >= 90
+                            ? "#16a34a"
+                            : pct >= 70
+                              ? "#d97706"
+                              : "#dc2626";
+                        const bgTrack =
+                          pct >= 90
+                            ? "#dcfce7"
+                            : pct >= 70
+                              ? "#fef3c7"
+                              : "#fee2e2";
+                        return (
+                          <>
+                            <span
+                              className="text-[11px] font-black tabular-nums"
+                              style={{
+                                color,
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              {p.ppActBillets}
+                            </span>
+                            <div
+                              className="w-full h-1 rounded-full overflow-hidden"
+                              style={{ background: bgTrack, minWidth: 36 }}
+                            >
+                              <div
+                                className="h-full rounded-full"
+                                style={{
+                                  width: `${pct.toFixed(0)}%`,
+                                  background: color,
+                                }}
+                              />
+                            </div>
+                            <span
+                              className="text-[8px] font-bold tabular-nums"
+                              style={{
+                                color,
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              {pct.toFixed(0)}%
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </TD>
+
+                  {/* ── Die Load ── */}
+                  <TD right>
+                    {(() => {
+                      const loadColor =
+                        p.dieLoad > 20
+                          ? "#ef4444"
+                          : p.dieLoad > 15
+                            ? "#f59e0b"
+                            : "#22c55e";
+                      return (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="flex items-center gap-0.5">
+                            <span
+                              className="text-[8px] font-bold uppercase px-0.5 rounded"
+                              style={{
+                                color: "#ffffff",
+                                background: "#3b82f6",
+                              }}
+                            >
+                              L
+                            </span>
+                            <span
+                              className="text-[10px] font-mono tabular-nums font-semibold"
+                              style={{
+                                color: loadColor,
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              {p.dieLoad > 0 ? `${p.dieLoad}m` : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </TD>
+
+                  {/* ── Die Unload ── */}
+                  <TD right>
+                    {(() => {
+                      const unloadColor =
+                        p.dieUnload > 15
+                          ? "#ef4444"
+                          : p.dieUnload > 10
+                            ? "#f59e0b"
+                            : "#22c55e";
+                      return (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="flex items-center gap-0.5">
+                            <span
+                              className="text-[8px] font-bold uppercase px-0.5 rounded"
+                              style={{
+                                color: "#ffffff",
+                                background: "#8b5cf6",
+                              }}
+                            >
+                              U
+                            </span>
+                            <span
+                              className="text-[10px] font-mono tabular-nums font-semibold"
+                              style={{
+                                color: unloadColor,
+                                fontFamily: '"JetBrains Mono", monospace',
+                              }}
+                            >
+                              {p.dieUnload > 0 ? `${p.dieUnload}m` : "—"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </TD>
 
                   {/* ── OEE % ── */}
@@ -524,38 +533,37 @@ export function PressFleetTable({
               >
                 Fleet Total / Avg
               </td>
-              <td
-                className="px-2 py-1.5 text-center border-t-2 border-[#e2e8f0]"
-                colSpan={2}
-              >
+              {/* Status summary */}
+              <td className="px-2 py-1.5 text-center border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-semibold"
                   style={{ color: "#64748b" }}
                 >
-                  {presses.filter((p) => p.status === "Running").length} Running
-                  · {presses.filter((p) => p.status === "Breakdown").length}{" "}
-                  Down · {presses.filter((p) => p.status === "Idle").length}{" "}
-                  Idle · {presses.filter((p) => p.status === "Setup").length}{" "}
-                  Setup
+                  {presses.filter((p) => p.status === "Running").length}R ·{" "}
+                  {presses.filter((p) => p.status === "Breakdown").length}D ·{" "}
+                  {presses.filter((p) => p.status === "Idle").length}I ·{" "}
+                  {presses.filter((p) => p.status === "Setup").length}S
                 </span>
               </td>
-              <td className="px-2 py-1.5 text-left border-t-2 border-[#e2e8f0]">
+              {/* Die Kg/H avg */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
-                  className="text-[9px] font-black tabular-nums"
+                  className="text-[9px] font-semibold tabular-nums"
                   style={{
-                    color: "#0369a1",
+                    color: "#1e3a5f",
                     fontFamily: '"JetBrains Mono", monospace',
                   }}
                 >
-                  {presses.reduce((s, p) => s + p.ppActBillets, 0)}{" "}
-                  <span
-                    className="font-normal text-[8px]"
-                    style={{ color: "#94a3b8" }}
-                  >
-                    / {presses.reduce((s, p) => s + p.ppPlanBillets, 0)} shots
-                  </span>
+                  {Math.round(
+                    presses
+                      .filter((p) => p.dieKgH > 0)
+                      .reduce((s, p) => s + p.dieKgH, 0) /
+                      Math.max(1, presses.filter((p) => p.dieKgH > 0).length),
+                  ).toLocaleString()}{" "}
+                  avg
                 </span>
               </td>
+              {/* Press Kg/H avg */}
               <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-black tabular-nums"
@@ -568,9 +576,34 @@ export function PressFleetTable({
                     presses.reduce((s, p) => s + p.kgPerHour, 0) /
                       presses.length,
                   ).toLocaleString()}{" "}
-                  kg/h avg
+                  avg
                 </span>
               </td>
+              {/* Input (Mt) total */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-black tabular-nums"
+                  style={{
+                    color: "#0369a1",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {presses.reduce((s, p) => s + p.inputMt, 0).toFixed(2)} MT
+                </span>
+              </td>
+              {/* Output (Mt) total */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-black tabular-nums"
+                  style={{
+                    color: "#0f766e",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {presses.reduce((s, p) => s + p.outputMt, 0).toFixed(2)} MT
+                </span>
+              </td>
+              {/* Contact Time avg */}
               <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-semibold"
@@ -585,7 +618,7 @@ export function PressFleetTable({
                   s avg
                 </span>
               </td>
-              <td className="px-2 py-1.5 border-t-2 border-[#e2e8f0]" />
+              {/* Downtime total */}
               <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-semibold tabular-nums"
@@ -595,9 +628,69 @@ export function PressFleetTable({
                   }}
                 >
                   {presses.reduce((s, p) => s + p.downtime, 0).toFixed(0)} min
-                  total
                 </span>
               </td>
+              {/* PP Planned total */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-semibold tabular-nums"
+                  style={{
+                    color: "#64748b",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {presses.reduce((s, p) => s + p.ppPlanBillets, 0)} shots
+                </span>
+              </td>
+              {/* PP Actual total */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-black tabular-nums"
+                  style={{
+                    color: "#0369a1",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {presses.reduce((s, p) => s + p.ppActBillets, 0)} shots
+                </span>
+              </td>
+              {/* Die Load avg */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-semibold tabular-nums"
+                  style={{
+                    color: "#3b82f6",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {(
+                    presses
+                      .filter((p) => p.dieLoad > 0)
+                      .reduce((s, p) => s + p.dieLoad, 0) /
+                    Math.max(1, presses.filter((p) => p.dieLoad > 0).length)
+                  ).toFixed(0)}
+                  m avg
+                </span>
+              </td>
+              {/* Die Unload avg */}
+              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                <span
+                  className="text-[9px] font-semibold tabular-nums"
+                  style={{
+                    color: "#8b5cf6",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
+                  {(
+                    presses
+                      .filter((p) => p.dieUnload > 0)
+                      .reduce((s, p) => s + p.dieUnload, 0) /
+                    Math.max(1, presses.filter((p) => p.dieUnload > 0).length)
+                  ).toFixed(0)}
+                  m avg
+                </span>
+              </td>
+              {/* OEE avg */}
               <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-black tabular-nums"
@@ -612,6 +705,7 @@ export function PressFleetTable({
                   %
                 </span>
               </td>
+              {/* Recovery avg */}
               <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-semibold tabular-nums"
@@ -661,9 +755,9 @@ export function PressFleetTable({
           </div>
         ))}
         <span className="text-[8px]" style={{ color: "#94a3b8" }}>
-          · PP = Production Plan (Actual Shots / Planned Shots) · L = Die Load
-          time · U = Die Unload time · Contact Time = billet contact duration
-          (sec)
+          · PP Planned = Target billet/shot count · PP Actual = Achieved
+          billet/shot count · L = Die Load time (min) · U = Die Unload time
+          (min) · Contact Time = billet contact duration (sec)
         </span>
       </div>
     </div>

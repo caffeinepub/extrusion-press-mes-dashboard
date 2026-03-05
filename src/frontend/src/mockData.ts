@@ -32,6 +32,8 @@ export interface PressData {
   dieUnload: number; // Die Unload time (min)
   contactTime: number; // Contact Time (sec)
   recovery: number; // Recovery %
+  inputMt: number; // Input in Metric Tonnes
+  outputMt: number; // Output in Metric Tonnes
 }
 
 // ─── Deterministic seeded variation ───────────────────────────────────────────
@@ -158,6 +160,8 @@ const BASE_PRESSES = [
     dieUnload: 8,
     contactTime: 42,
     recovery: 91.5,
+    inputMt: 42.6,
+    outputMt: 38.9,
   },
   {
     id: "P2500",
@@ -185,6 +189,8 @@ const BASE_PRESSES = [
     dieUnload: 0,
     contactTime: 0,
     recovery: 68.2,
+    inputMt: 16.0,
+    outputMt: 10.9,
   },
   {
     id: "P1800",
@@ -212,6 +218,8 @@ const BASE_PRESSES = [
     dieUnload: 10,
     contactTime: 38,
     recovery: 88.7,
+    inputMt: 38.0,
+    outputMt: 33.7,
   },
   {
     id: "P1460",
@@ -239,6 +247,8 @@ const BASE_PRESSES = [
     dieUnload: 7,
     contactTime: 35,
     recovery: 90.1,
+    inputMt: 32.0,
+    outputMt: 28.8,
   },
   {
     id: "P1100",
@@ -266,6 +276,8 @@ const BASE_PRESSES = [
     dieUnload: 6,
     contactTime: 30,
     recovery: 94.8,
+    inputMt: 50.0,
+    outputMt: 47.4,
   },
 ];
 
@@ -344,6 +356,13 @@ export function getFilteredMockData(
     // Period scaling for "actual" output column
     const actualMT = base.actual * seed.oeeMultiplier * pm.output;
 
+    const inputMt = Number.parseFloat(
+      (base.inputMt * seed.kgHrMultiplier * pm.input).toFixed(2),
+    );
+    const outputMt = Number.parseFloat(
+      (base.outputMt * seed.oeeMultiplier * pm.output).toFixed(2),
+    );
+
     return {
       ...base,
       status,
@@ -363,6 +382,8 @@ export function getFilteredMockData(
       dieKgH: Number.parseFloat(dieKgH.toFixed(0)),
       ppPlanBillets,
       ppActBillets,
+      inputMt,
+      outputMt,
     };
   });
 
