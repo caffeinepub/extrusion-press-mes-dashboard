@@ -7,25 +7,26 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from "lucide-react";
 
-interface PressInputRow {
+interface PressScrapRow {
   pressId: string;
   pressName: string;
   status: "Running" | "Idle" | "Breakdown" | "Setup";
-  billetCount: number;
-  inputWeightMT: number;
-  avgBilletWtKg: number;
-  inputRateMTHr: number;
+  scrapPct: number;
+  scrapKg: number;
+  reworkPct: number;
+  firstPassYield: number;
+  scrapCost: number;
   accentColor: string;
 }
 
-interface TotalInputModalProps {
+interface TotalScrapModalProps {
   open: boolean;
   onClose: () => void;
-  totalInput: number;
+  totalScrap: number;
 }
 
 const STATUS_STYLES: Record<
-  PressInputRow["status"],
+  PressScrapRow["status"],
   { bg: string; color: string; label: string }
 > = {
   Running: { bg: "#dcfce7", color: "#16a34a", label: "RUNNING" },
@@ -42,86 +43,64 @@ const PRESS_ACCENT_COLORS = [
   "#a855f7",
 ];
 
-function buildPressData(totalInput: number): PressInputRow[] {
-  // Realistic distribution — sums to ~totalInput
-  const weights = [0.26, 0.05, 0.24, 0.22, 0.23];
+const ACCENT_COLOR = "#ea580c";
+
+const SCRAP_PCTS = [1.4, 2.3, 1.6, 1.5, 1.3];
+const REWORK_PCTS = [0.6, 1.2, 0.7, 0.5, 0.8];
+// Output weights proportional to production weights
+const OUTPUT_WEIGHTS_MT = [0.26, 0.04, 0.24, 0.22, 0.24];
+
+function buildPressData(_totalScrap: number): PressScrapRow[] {
+  // totalScrap is a %, use it to scale output reference
+  const baseOutputMT = 108; // reference daily output MT
   const presses: Array<{
     pressId: string;
     pressName: string;
-    status: PressInputRow["status"];
-    billetCount: number;
-    tonnesPerBillet: number;
+    status: PressScrapRow["status"];
   }> = [
-    {
-      pressId: "P3300",
-      pressName: "Titan",
-      status: "Running",
-      billetCount: 42,
-      tonnesPerBillet: 0.062,
-    },
-    {
-      pressId: "P2500",
-      pressName: "Atlas",
-      status: "Breakdown",
-      billetCount: 8,
-      tonnesPerBillet: 0.063,
-    },
-    {
-      pressId: "P1800",
-      pressName: "Vulcan",
-      status: "Running",
-      billetCount: 38,
-      tonnesPerBillet: 0.063,
-    },
-    {
-      pressId: "P1460",
-      pressName: "Hermes",
-      status: "Running",
-      billetCount: 36,
-      tonnesPerBillet: 0.064,
-    },
-    {
-      pressId: "P1100",
-      pressName: "Swift",
-      status: "Running",
-      billetCount: 37,
-      tonnesPerBillet: 0.062,
-    },
+    { pressId: "P3300", pressName: "Titan", status: "Running" },
+    { pressId: "P2500", pressName: "Atlas", status: "Breakdown" },
+    { pressId: "P1800", pressName: "Vulcan", status: "Running" },
+    { pressId: "P1460", pressName: "Hermes", status: "Running" },
+    { pressId: "P1100", pressName: "Swift", status: "Running" },
   ];
 
   return presses.map((p, i) => {
-    const inputWeightMT = totalInput * weights[i];
-    const avgBilletWtKg = (inputWeightMT * 1000) / p.billetCount;
-    // Running presses have a real input rate; broken press has reduced rate
-    const hoursElapsed = p.status === "Breakdown" ? 6 : 4.5;
-    const inputRateMTHr =
-      p.status === "Breakdown"
-        ? inputWeightMT / 8
-        : inputWeightMT / hoursElapsed;
+    const outputMT = baseOutputMT * OUTPUT_WEIGHTS_MT[i];
+    const scrapPct = SCRAP_PCTS[i];
+    const scrapKg = outputMT * (scrapPct / 100) * 1000;
+    const reworkPct = REWORK_PCTS[i];
+    const firstPassYield = 100 - scrapPct - reworkPct;
+    const scrapCost = scrapKg * 2.8;
 
     return {
       pressId: p.pressId,
       pressName: p.pressName,
       status: p.status,
-      billetCount: p.billetCount,
-      inputWeightMT,
-      avgBilletWtKg,
-      inputRateMTHr,
+      scrapPct,
+      scrapKg,
+      reworkPct,
+      firstPassYield,
+      scrapCost,
       accentColor: PRESS_ACCENT_COLORS[i],
     };
   });
 }
 
-export function TotalInputModal({
+export function TotalScrapModal({
   open,
   onClose,
-  totalInput,
-}: TotalInputModalProps) {
-  const pressRows = buildPressData(totalInput);
-  const sumInput = pressRows.reduce((acc, r) => acc + r.inputWeightMT, 0);
-  const sumBillets = pressRows.reduce((acc, r) => acc + r.billetCount, 0);
-  const sumAvgBillet = sumInput > 0 ? (sumInput * 1000) / sumBillets : 0;
-  const sumInputRate = pressRows.reduce((acc, r) => acc + r.inputRateMTHr, 0);
+  totalScrap,
+}: TotalScrapModalProps) {
+  const pressRows = buildPressData(totalScrap);
+  const totalScrapKg = pressRows.reduce((acc, r) => acc + r.scrapKg, 0);
+  const avgScrapPct =
+    pressRows.reduce((acc, r) => acc + r.scrapPct, 0) / pressRows.length;
+  const avgReworkPct =
+    pressRows.reduce((acc, r) => acc + r.reworkPct, 0) / pressRows.length;
+  const avgFPY =
+    pressRows.reduce((acc, r) => acc + r.firstPassYield, 0) / pressRows.length;
+  const totalCost = pressRows.reduce((acc, r) => acc + r.scrapCost, 0);
 
   const today = new Date();
   const dateLabel = today.toLocaleDateString("en-IN", {
@@ -134,6 +113,7 @@ export function TotalInputModal({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
         className="p-0 gap-0 border-0 overflow-hidden"
+        data-ocid="kpi.total_scrap.modal"
         style={{
           maxWidth: "860px",
           width: "95vw",
@@ -143,28 +123,25 @@ export function TotalInputModal({
           boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
         }}
       >
-        {/* Custom close button */}
         <button
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 z-10 flex items-center justify-center w-7 h-7 rounded transition-colors"
           style={{ color: "#64748b", background: "#f1f5f9" }}
           aria-label="Close"
-          data-ocid="kpi.total_input.close_button"
+          data-ocid="kpi.total_scrap.close_button"
         >
           <X size={14} />
         </button>
 
-        {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-0">
           <div
             className="flex items-center gap-2 mb-1"
             style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "12px" }}
           >
-            {/* Accent strip */}
             <div
               className="w-1 h-8 rounded-full shrink-0"
-              style={{ background: "#22c55e" }}
+              style={{ background: ACCENT_COLOR }}
             />
             <div>
               <DialogTitle
@@ -175,7 +152,7 @@ export function TotalInputModal({
                   letterSpacing: "0.04em",
                 }}
               >
-                TOTAL INPUT — PRESS WISE BREAKDOWN
+                TOTAL SCRAP — PRESS WISE BREAKDOWN
               </DialogTitle>
               <p
                 className="text-[10px] mt-0.5"
@@ -188,7 +165,6 @@ export function TotalInputModal({
                 MONITORED
               </p>
             </div>
-            {/* Total badge */}
             <div
               className="ml-auto flex flex-col items-end"
               style={{ paddingRight: "28px" }}
@@ -196,24 +172,23 @@ export function TotalInputModal({
               <span
                 className="text-[24px] font-black tabular-nums"
                 style={{
-                  color: "#16a34a",
+                  color: ACCENT_COLOR,
                   fontFamily: '"JetBrains Mono", monospace',
                   lineHeight: 1,
                 }}
               >
-                {totalInput.toFixed(2)}
+                {totalScrap.toFixed(1)}%
               </span>
               <span
                 className="text-[10px] font-bold"
-                style={{ color: "#86efac" }}
+                style={{ color: "#fdba74" }}
               >
-                MT TOTAL INPUT
+                AVG SCRAP RATE
               </span>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Body */}
         <div className="px-5 pt-3 pb-5">
           {/* Mini bar chart */}
           <div
@@ -228,12 +203,11 @@ export function TotalInputModal({
               className="text-[9px] font-bold uppercase tracking-widest mb-2"
               style={{ color: "#64748b" }}
             >
-              INPUT CONTRIBUTION BY PRESS
+              SCRAP % BY PRESS
             </p>
             <div className="flex flex-col gap-1.5">
               {pressRows.map((row) => {
-                const pct =
-                  sumInput > 0 ? (row.inputWeightMT / sumInput) * 100 : 0;
+                const pct = (row.scrapPct / 5) * 100; // normalize against 5% max
                 return (
                   <div key={row.pressId} className="flex items-center gap-2">
                     <span
@@ -253,8 +227,9 @@ export function TotalInputModal({
                         className="h-full rounded-sm transition-all duration-500"
                         style={{
                           width: `${pct}%`,
-                          background: row.accentColor,
-                          opacity: row.status === "Breakdown" ? 0.45 : 0.9,
+                          background:
+                            row.scrapPct > 2 ? "#dc2626" : ACCENT_COLOR,
+                          opacity: row.status === "Breakdown" ? 0.6 : 0.85,
                         }}
                       />
                     </div>
@@ -265,16 +240,16 @@ export function TotalInputModal({
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {pct.toFixed(1)}%
+                      {row.scrapPct.toFixed(1)}%
                     </span>
                     <span
-                      className="text-[10px] tabular-nums w-[48px] text-right shrink-0"
+                      className="text-[10px] tabular-nums w-[52px] text-right shrink-0"
                       style={{
                         color: "#475569",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {row.inputWeightMT.toFixed(2)} MT
+                      {row.scrapKg.toFixed(0)} kg
                     </span>
                   </div>
                 );
@@ -294,11 +269,11 @@ export function TotalInputModal({
                     {[
                       "PRESS",
                       "STATUS",
-                      "BILLET CT",
-                      "INPUT WT (MT)",
-                      "AVG BILLET WT (KG)",
-                      "INPUT RATE (MT/HR)",
-                      "% OF TOTAL",
+                      "SCRAP %",
+                      "SCRAP KG",
+                      "REWORK %",
+                      "FIRST PASS YIELD %",
+                      "SCRAP COST ($)",
                     ].map((h) => (
                       <th
                         key={h}
@@ -317,18 +292,16 @@ export function TotalInputModal({
                 </thead>
                 <tbody>
                   {pressRows.map((row, idx) => {
-                    const pct =
-                      sumInput > 0 ? (row.inputWeightMT / sumInput) * 100 : 0;
                     const st = STATUS_STYLES[row.status];
                     return (
                       <tr
                         key={row.pressId}
+                        data-ocid={`kpi.total_scrap_modal.row.${idx + 1}`}
                         style={{
                           background: idx % 2 === 0 ? "#f8fafc" : "#ffffff",
                           borderBottom: "1px solid #f1f5f9",
                         }}
                       >
-                        {/* Press ID */}
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
                             <div
@@ -349,7 +322,6 @@ export function TotalInputModal({
                             </span>
                           </div>
                         </td>
-                        {/* Status badge */}
                         <td className="px-3 py-2.5">
                           <span
                             className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
@@ -362,27 +334,24 @@ export function TotalInputModal({
                             {st.label}
                           </span>
                         </td>
-                        {/* Billet Count */}
                         <td
-                          className="px-3 py-2.5 tabular-nums font-semibold text-center"
+                          className="px-3 py-2.5 tabular-nums font-bold text-right"
                           style={{
-                            color: "#334155",
+                            color: row.scrapPct > 2 ? "#dc2626" : ACCENT_COLOR,
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.billetCount}
+                          {row.scrapPct.toFixed(1)}%
                         </td>
-                        {/* Input Weight */}
                         <td
-                          className="px-3 py-2.5 tabular-nums font-bold text-right"
+                          className="px-3 py-2.5 tabular-nums font-semibold text-right"
                           style={{
                             color: "#1e293b",
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.inputWeightMT.toFixed(2)}
+                          {row.scrapKg.toFixed(1)}
                         </td>
-                        {/* Avg Billet Wt */}
                         <td
                           className="px-3 py-2.5 tabular-nums text-right"
                           style={{
@@ -390,116 +359,89 @@ export function TotalInputModal({
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.avgBilletWtKg.toFixed(1)}
+                          {row.reworkPct.toFixed(1)}%
                         </td>
-                        {/* Input Rate */}
                         <td
                           className="px-3 py-2.5 tabular-nums font-semibold text-right"
                           style={{
                             color:
-                              row.status === "Breakdown"
-                                ? "#dc2626"
-                                : "#16a34a",
+                              row.firstPassYield > 97 ? "#16a34a" : "#475569",
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.inputRateMTHr.toFixed(2)}
+                          {row.firstPassYield.toFixed(1)}%
                         </td>
-                        {/* % of Total with progress bar */}
-                        <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="flex-1 h-2 rounded-full overflow-hidden"
-                              style={{
-                                background: "#e2e8f0",
-                                minWidth: "60px",
-                              }}
-                            >
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${pct}%`,
-                                  background: row.accentColor,
-                                  opacity:
-                                    row.status === "Breakdown" ? 0.5 : 0.85,
-                                }}
-                              />
-                            </div>
-                            <span
-                              className="text-[10px] font-bold tabular-nums w-[32px] text-right shrink-0"
-                              style={{
-                                color: row.accentColor,
-                                fontFamily: '"JetBrains Mono", monospace',
-                              }}
-                            >
-                              {pct.toFixed(1)}%
-                            </span>
-                          </div>
+                        <td
+                          className="px-3 py-2.5 tabular-nums font-semibold text-right"
+                          style={{
+                            color: "#dc2626",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          ${row.scrapCost.toFixed(0)}
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
-
-                {/* Summary / Totals row */}
                 <tfoot>
                   <tr
                     style={{
-                      background: "#f0fdf4",
-                      borderTop: "2px solid #86efac",
+                      background: "#fff7ed",
+                      borderTop: `2px solid ${ACCENT_COLOR}`,
                     }}
                   >
                     <td
                       className="px-3 py-2.5 font-bold uppercase tracking-wider text-[10px]"
-                      style={{ color: "#16a34a" }}
+                      style={{ color: ACCENT_COLOR }}
                       colSpan={2}
                     >
                       TOTAL / FLEET
                     </td>
                     <td
-                      className="px-3 py-2.5 tabular-nums font-bold text-center"
-                      style={{
-                        color: "#16a34a",
-                        fontFamily: '"JetBrains Mono", monospace',
-                      }}
-                    >
-                      {sumBillets}
-                    </td>
-                    <td
                       className="px-3 py-2.5 tabular-nums font-black text-right"
                       style={{
-                        color: "#16a34a",
+                        color: ACCENT_COLOR,
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumInput.toFixed(2)}
+                      {avgScrapPct.toFixed(1)}%
                     </td>
                     <td
-                      className="px-3 py-2.5 tabular-nums text-right"
+                      className="px-3 py-2.5 tabular-nums font-bold text-right"
+                      style={{
+                        color: ACCENT_COLOR,
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {totalScrapKg.toFixed(1)}
+                    </td>
+                    <td
+                      className="px-3 py-2.5 tabular-nums font-bold text-right"
                       style={{
                         color: "#64748b",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumAvgBillet.toFixed(1)}
+                      {avgReworkPct.toFixed(1)}%
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums font-bold text-right"
                       style={{
-                        color: "#16a34a",
+                        color: "#64748b",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumInputRate.toFixed(2)}
+                      {avgFPY.toFixed(1)}%
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums font-bold text-right"
                       style={{
-                        color: "#16a34a",
+                        color: "#dc2626",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      100.0%
+                      ${totalCost.toFixed(0)}
                     </td>
                   </tr>
                 </tfoot>
@@ -507,11 +449,11 @@ export function TotalInputModal({
             </div>
           </ScrollArea>
 
-          {/* Legend row */}
+          {/* Legend + timestamp */}
           <div className="flex items-center gap-4 mt-3 flex-wrap">
             {(
               ["Running", "Idle", "Breakdown", "Setup"] as Array<
-                PressInputRow["status"]
+                PressScrapRow["status"]
               >
             ).map((s) => {
               const st = STATUS_STYLES[s];

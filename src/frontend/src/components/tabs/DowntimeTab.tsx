@@ -38,6 +38,9 @@ interface DowntimeTabProps {
   presses: Press[];
   downtimeEvents: DowntimeEvent[];
   isLoading: boolean;
+  filterBadge?: string;
+  downtimeCategories?: { name: string; percentage: number; color: string }[];
+  totalDowntimeHrs?: number;
 }
 
 const SUB_TABS = ["Breakdown Analysis", "Trend Analysis", "Event Log"];
@@ -72,6 +75,9 @@ export function DowntimeTab({
   presses,
   downtimeEvents,
   isLoading,
+  filterBadge,
+  downtimeCategories = [],
+  totalDowntimeHrs = 0,
 }: DowntimeTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [trendPressFilter, setTrendPressFilter] = useState("All");
@@ -106,17 +112,28 @@ export function DowntimeTab({
     0,
   );
 
-  // By category for pie chart
+  // Use passed totalDowntimeHrs if no backend events available
+  const displayTotalDowntimeHrs =
+    downtimeEvents.length > 0 ? totalDowntimeMins / 60 : totalDowntimeHrs;
+
+  // By category for pie chart — prefer mock categories when no backend events
   const byCategory: Record<string, number> = {};
   for (const e of downtimeEvents) {
     byCategory[e.category] =
       (byCategory[e.category] || 0) + Number(e.durationMinutes);
   }
-  const pieData = Object.entries(byCategory).map(([cat, value]) => ({
-    name: formatDowntimeCategory(cat),
-    value,
-    fill: CATEGORY_COLORS[cat] || "#64748b",
-  }));
+  const pieData =
+    downtimeEvents.length > 0
+      ? Object.entries(byCategory).map(([cat, value]) => ({
+          name: formatDowntimeCategory(cat),
+          value,
+          fill: CATEGORY_COLORS[cat] || "#64748b",
+        }))
+      : downtimeCategories.map((cat) => ({
+          name: cat.name,
+          value: cat.percentage,
+          fill: cat.color,
+        }));
 
   // Press-wise comparison
   const byPress: Record<string, number> = {};
@@ -174,12 +191,46 @@ export function DowntimeTab({
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
 
+      {/* Filter badge for Breakdown Analysis */}
+      {subTab === "Breakdown Analysis" && filterBadge && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
+
       {/* Filter bar for Trend Analysis and Event Log */}
       {(subTab === "Trend Analysis" || subTab === "Event Log") && (
         <div
           className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
-          style={{ background: "#070c16" }}
+          style={{ background: "#f8fafc" }}
         >
+          {filterBadge && (
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+              style={{
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                borderColor: "#bfdbfe",
+              }}
+            >
+              {filterBadge}
+            </span>
+          )}
           {subTab === "Trend Analysis" && (
             <>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -287,7 +338,7 @@ export function DowntimeTab({
               </div>
               <div className="mes-card p-3 text-center">
                 <div className="font-mono text-2xl font-bold text-red-400">
-                  {(totalDowntimeMins / 60).toFixed(1)}
+                  {displayTotalDowntimeHrs.toFixed(1)}
                 </div>
                 <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
                   Total Downtime (hrs)

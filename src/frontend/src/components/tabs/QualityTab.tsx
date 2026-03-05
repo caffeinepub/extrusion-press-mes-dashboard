@@ -29,6 +29,7 @@ import {
   YAxis,
 } from "recharts";
 import type { Press, QualityRecord } from "../../backend.d";
+import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -36,6 +37,8 @@ interface QualityTabProps {
   presses: Press[];
   qualityRecords: QualityRecord[];
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["Rejection Analysis", "Defect Tracking", "Root Cause"];
@@ -57,7 +60,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function QualityTab({ qualityRecords, isLoading }: QualityTabProps) {
+export function QualityTab({
+  qualityRecords,
+  isLoading,
+  filterBadge,
+  mockPresses: _mockPresses = [],
+}: QualityTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [alloyFilter, setAlloyFilter] = useState("All");
   const [dieFilter, setDieFilter] = useState("All");
@@ -158,13 +166,45 @@ export function QualityTab({ qualityRecords, isLoading }: QualityTabProps) {
   return (
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
+      {filterBadge && subTab !== "Rejection Analysis" && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
 
       {/* Filter bar (Rejection Analysis only) */}
       {subTab === "Rejection Analysis" && (
         <div
           className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
-          style={{ background: "#070c16" }}
+          style={{ background: "#f8fafc" }}
         >
+          {filterBadge && (
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+              style={{
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                borderColor: "#bfdbfe",
+              }}
+            >
+              {filterBadge}
+            </span>
+          )}
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
             Alloy:
           </span>

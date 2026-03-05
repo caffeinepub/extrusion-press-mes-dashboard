@@ -10,6 +10,11 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  type Period,
+  type Shift,
+  useFilter,
+} from "../../context/FilterContext";
 
 interface TopNavBarProps {
   role: "Operator" | "Management" | "CEO";
@@ -68,35 +73,76 @@ const TYPE_STYLES: Record<string, { bar: string; dot: string; label: string }> =
     },
   };
 
+const SHIFTS: Shift[] = ["A", "B", "C"];
+const PERIODS: Period[] = ["Today", "Week", "Month"];
+
+const SHIFT_COLORS: Record<
+  Shift,
+  { bg: string; text: string; border: string }
+> = {
+  A: { bg: "#fef3c7", text: "#b45309", border: "#f59e0b" },
+  B: { bg: "#dbeafe", text: "#1d4ed8", border: "#3b82f6" },
+  C: { bg: "#f3e8ff", text: "#7c3aed", border: "#8b5cf6" },
+};
+
+const PERIOD_COLORS: Record<
+  Period,
+  { bg: string; text: string; border: string }
+> = {
+  Today: { bg: "#f0fdf4", text: "#15803d", border: "#22c55e" },
+  Week: { bg: "#eff6ff", text: "#1d4ed8", border: "#3b82f6" },
+  Month: { bg: "#fff7ed", text: "#c2410c", border: "#f97316" },
+};
+
 export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
   const [time, setTime] = useState(new Date());
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
+  const [showShiftMenu, setShowShiftMenu] = useState(false);
+  const [showPeriodMenu, setShowPeriodMenu] = useState(false);
   const roleMenuRef = useRef<HTMLDivElement>(null);
+  const shiftMenuRef = useRef<HTMLDivElement>(null);
+  const periodMenuRef = useRef<HTMLDivElement>(null);
+
+  const { shift, period, date, setShift, setPeriod, setDate } = useFilter();
 
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Close role menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (
         roleMenuRef.current &&
         !roleMenuRef.current.contains(e.target as Node)
-      ) {
+      )
         setShowRoleMenu(false);
-      }
+      if (
+        shiftMenuRef.current &&
+        !shiftMenuRef.current.contains(e.target as Node)
+      )
+        setShowShiftMenu(false);
+      if (
+        periodMenuRef.current &&
+        !periodMenuRef.current.contains(e.target as Node)
+      )
+        setShowPeriodMenu(false);
     }
-    if (showRoleMenu) document.addEventListener("mousedown", handler);
+    document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [showRoleMenu]);
+  }, []);
 
   const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
 
-  const today = new Date();
-  const dateStr = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+  // Format date for display
+  const displayDate = date
+    ? (() => {
+        const parts = date.split("-");
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      })()
+    : "—";
 
   const roleLabel =
     role === "CEO"
@@ -104,6 +150,9 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
       : role === "Operator"
         ? "Operator View"
         : "Management View";
+
+  const shiftStyle = SHIFT_COLORS[shift];
+  const periodStyle = PERIOD_COLORS[period];
 
   const handleLogout = () => {
     toast.info("No authentication configured. Login is not required.", {
@@ -115,15 +164,15 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
   return (
     <>
       <header
-        className="flex items-center justify-between px-3 py-1.5 border-b border-[#162030] shrink-0"
-        style={{ background: "#060b14", minHeight: "42px" }}
+        className="flex items-center justify-between px-3 py-1.5 border-b border-[#e2e8f0] shrink-0"
+        style={{ background: "#ffffff", minHeight: "42px" }}
       >
         {/* Left: Brand */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div
               className="w-7 h-7 rounded flex items-center justify-center font-black text-[10px]"
-              style={{ background: "#1e3a6e", color: "#f59e0b" }}
+              style={{ background: "#dbeafe", color: "#1d4ed8" }}
             >
               MES
             </div>
@@ -131,7 +180,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
               <div
                 className="font-black tracking-tight leading-none"
                 style={{
-                  color: "#d0e4f8",
+                  color: "#1e3a5f",
                   fontSize: "13px",
                   letterSpacing: "-0.01em",
                 }}
@@ -140,22 +189,22 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
               </div>
               <div
                 className="text-[8px] font-black tracking-widest mt-0.5"
-                style={{ color: "#c48a10", letterSpacing: "0.12em" }}
+                style={{ color: "#92650a", letterSpacing: "0.12em" }}
               >
                 MES EXECUTIVE VIEW
               </div>
             </div>
           </div>
 
-          <div className="w-px h-8 bg-[#1e2d45] mx-1" />
+          <div className="w-px h-8 bg-[#e2e8f0] mx-1" />
 
           {/* View label (non-clickable, reflects current role) */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border"
             style={{
-              background: "#1e3a6e",
+              background: "#eff6ff",
               borderColor: "#3b82f6",
-              color: "#93c5fd",
+              color: "#1d4ed8",
             }}
           >
             <Grid3X3 size={12} />
@@ -163,37 +212,141 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
           </div>
         </div>
 
-        {/* Center: Date/Shift/Period */}
-        <div className="flex items-center gap-4 text-[11px]">
-          <div
-            className="flex items-center gap-1.5"
-            style={{ color: "#94a3b8" }}
-          >
-            <Calendar size={11} />
+        {/* Center: Date / Shift selector / Period selector */}
+        <div className="flex items-center gap-2 text-[11px]">
+          {/* Date picker */}
+          <div className="flex items-center gap-1.5 relative">
+            <Calendar size={11} style={{ color: "#64748b" }} />
             <span
-              className="font-mono font-semibold"
-              style={{ color: "#e2e8f0" }}
+              className="font-mono font-semibold text-[11px]"
+              style={{ color: "#1e293b" }}
             >
-              {dateStr}
+              {displayDate}
             </span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              data-ocid="filter.date.input"
+              title="Select Date"
+              style={{
+                position: "absolute",
+                inset: 0,
+                opacity: 0,
+                cursor: "pointer",
+                width: "100%",
+              }}
+            />
           </div>
-          <div className="flex items-center gap-1.5">
-            <span style={{ color: "#64748b" }}>SHIFT</span>
-            <span
-              className="font-bold px-1.5 py-0.5 rounded text-[10px]"
-              style={{ background: "#f59e0b20", color: "#f59e0b" }}
+
+          <div className="w-px h-5 bg-[#e2e8f0]" />
+
+          {/* Shift selector */}
+          <div className="relative" ref={shiftMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowShiftMenu((v) => !v)}
+              data-ocid="filter.shift.select"
+              className="flex items-center gap-1 px-2 py-0.5 rounded border font-bold text-[10px] transition-colors"
+              style={{
+                background: shiftStyle.bg,
+                color: shiftStyle.text,
+                borderColor: shiftStyle.border,
+              }}
+              title="Select Shift"
             >
-              Shift A
-            </span>
+              SHIFT {shift}
+              <ChevronDown size={9} />
+            </button>
+            {showShiftMenu && (
+              <div
+                className="absolute top-full mt-1 left-0 rounded border shadow-lg z-50 w-28"
+                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
+              >
+                {SHIFTS.map((s) => {
+                  const sc = SHIFT_COLORS[s];
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setShift(s);
+                        setShowShiftMenu(false);
+                      }}
+                      data-ocid={`filter.shift.${s.toLowerCase()}.button`}
+                      className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
+                      style={{
+                        color: s === shift ? sc.text : "#475569",
+                        fontWeight: s === shift ? 700 : 400,
+                      }}
+                    >
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          background: sc.bg,
+                          border: `1px solid ${sc.border}`,
+                        }}
+                      />
+                      Shift {s}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span style={{ color: "#64748b" }}>PERIOD</span>
-            <span
-              className="font-bold px-1.5 py-0.5 rounded text-[10px]"
-              style={{ background: "#f59e0b20", color: "#f59e0b" }}
+
+          {/* Period selector */}
+          <div className="relative" ref={periodMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowPeriodMenu((v) => !v)}
+              data-ocid="filter.period.select"
+              className="flex items-center gap-1 px-2 py-0.5 rounded border font-bold text-[10px] transition-colors"
+              style={{
+                background: periodStyle.bg,
+                color: periodStyle.text,
+                borderColor: periodStyle.border,
+              }}
+              title="Select Period"
             >
-              Today
-            </span>
+              {period.toUpperCase()}
+              <ChevronDown size={9} />
+            </button>
+            {showPeriodMenu && (
+              <div
+                className="absolute top-full mt-1 left-0 rounded border shadow-lg z-50 w-28"
+                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
+              >
+                {PERIODS.map((p) => {
+                  const pc = PERIOD_COLORS[p];
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => {
+                        setPeriod(p);
+                        setShowPeriodMenu(false);
+                      }}
+                      data-ocid={`filter.period.${p.toLowerCase()}.button`}
+                      className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
+                      style={{
+                        color: p === period ? pc.text : "#475569",
+                        fontWeight: p === period ? 700 : 400,
+                      }}
+                    >
+                      <span
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          background: pc.bg,
+                          border: `1px solid ${pc.border}`,
+                        }}
+                      />
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -202,7 +355,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
           {/* Live clock */}
           <div
             className="flex items-center gap-1.5 px-2 py-0.5 rounded"
-            style={{ background: "#0a1f10", border: "1px solid #22c55e30" }}
+            style={{ background: "#f0fdf4", border: "1px solid #86efac" }}
           >
             <div className="relative flex items-center justify-center w-2 h-2">
               <div
@@ -214,26 +367,26 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                 style={{ background: "#22c55e", opacity: 0.4 }}
               />
             </div>
-            <Clock size={10} style={{ color: "#22c55e60" }} />
+            <Clock size={10} style={{ color: "#16a34a" }} />
             <span
               className="font-mono font-black tabular-nums"
-              style={{ color: "#22c55e", fontSize: "13px" }}
+              style={{ color: "#15803d", fontSize: "13px" }}
             >
               {formatTime(time)}
             </span>
           </div>
 
-          <div className="w-px h-6 bg-[#1e2d45]" />
+          <div className="w-px h-6 bg-[#e2e8f0]" />
 
           {/* Last updated */}
-          <div className="text-[10px]" style={{ color: "#475569" }}>
+          <div className="text-[10px]" style={{ color: "#64748b" }}>
             <span>Updated: </span>
-            <span className="font-mono" style={{ color: "#64748b" }}>
+            <span className="font-mono" style={{ color: "#475569" }}>
               {formatTime(lastUpdated)}
             </span>
           </div>
 
-          <div className="w-px h-6 bg-[#1e2d45]" />
+          <div className="w-px h-6 bg-[#e2e8f0]" />
 
           {/* Role selector */}
           <div className="relative" ref={roleMenuRef}>
@@ -241,10 +394,11 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
               type="button"
               onClick={() => setShowRoleMenu((v) => !v)}
               className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-semibold border"
+              data-ocid="nav.role.select"
               style={{
-                background: "#0f1729",
-                borderColor: "#1e2d45",
-                color: "#94a3b8",
+                background: "#f8fafc",
+                borderColor: "#e2e8f0",
+                color: "#475569",
               }}
             >
               <Circle size={8} style={{ fill: "#3b82f6", color: "#3b82f6" }} />
@@ -253,8 +407,8 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
             </button>
             {showRoleMenu && (
               <div
-                className="absolute right-0 top-full mt-1 w-36 rounded border shadow-xl z-50"
-                style={{ background: "#0f1729", borderColor: "#1e2d45" }}
+                className="absolute right-0 top-full mt-1 w-36 rounded border shadow-lg z-50"
+                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
               >
                 {(["Operator", "Management", "CEO"] as const).map((r) => (
                   <button
@@ -264,9 +418,10 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                       onRoleChange(r);
                       setShowRoleMenu(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-[11px] hover:bg-[#1e2d45] transition-colors"
+                    className="w-full text-left px-3 py-2 text-[11px] hover:bg-[#f1f5f9] transition-colors"
+                    data-ocid={`nav.role.${r.toLowerCase()}.button`}
                     style={{
-                      color: r === role ? "#f59e0b" : "#94a3b8",
+                      color: r === role ? "#d97706" : "#475569",
                     }}
                   >
                     {r} View
@@ -281,6 +436,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
             type="button"
             onClick={() => setShowAIModal(true)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-opacity hover:opacity-90"
+            data-ocid="nav.ai_insight.button"
             style={{ background: "#7c3aed", color: "#fff" }}
           >
             <Brain size={11} />
@@ -290,10 +446,10 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
           <button
             type="button"
             onClick={handleLogout}
-            className="p-1.5 rounded hover:bg-[#1e2d45] transition-colors"
+            className="p-1.5 rounded hover:bg-[#f1f5f9] transition-colors"
             title="Logout"
           >
-            <LogOut size={13} style={{ color: "#475569" }} />
+            <LogOut size={13} style={{ color: "#64748b" }} />
           </button>
         </div>
       </header>
@@ -303,6 +459,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
         <dialog
           open
           aria-label="AI Insight Panel"
+          data-ocid="nav.ai_insight.modal"
           onKeyDown={(e) => {
             if (e.key === "Escape") setShowAIModal(false);
           }}
@@ -320,41 +477,46 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
             maxHeight: "100%",
             margin: 0,
             border: "none",
-            background: "rgba(0,0,0,0.5)",
+            background: "rgba(0,0,0,0.25)",
           }}
         >
           <div
             className="w-[420px] max-h-[80vh] overflow-y-auto rounded-lg border shadow-2xl flex flex-col"
-            style={{ background: "#0a111e", borderColor: "#7c3aed60" }}
+            style={{
+              background: "#ffffff",
+              borderColor: "#7c3aed30",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+            }}
           >
             {/* Modal header */}
             <div
               className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: "#7c3aed40" }}
+              style={{ borderColor: "#ede9fe" }}
             >
               <div className="flex items-center gap-2">
                 <div
                   className="w-6 h-6 rounded flex items-center justify-center"
-                  style={{ background: "#7c3aed30" }}
+                  style={{ background: "#ede9fe" }}
                 >
-                  <Brain size={13} style={{ color: "#a78bfa" }} />
+                  <Brain size={13} style={{ color: "#7c3aed" }} />
                 </div>
                 <div>
                   <div
                     className="text-xs font-bold"
-                    style={{ color: "#c4b5fd" }}
+                    style={{ color: "#5b21b6" }}
                   >
                     AI INSIGHT ENGINE
                   </div>
-                  <div className="text-[9px]" style={{ color: "#6d28d9" }}>
-                    Real-time analysis • {new Date().toLocaleTimeString()}
+                  <div className="text-[9px]" style={{ color: "#7c3aed" }}>
+                    Shift {shift} · {period} · {new Date().toLocaleTimeString()}
                   </div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAIModal(false)}
-                className="p-1 rounded hover:bg-[#1e2d45] transition-colors"
+                className="p-1 rounded hover:bg-[#f1f5f9] transition-colors"
+                data-ocid="nav.ai_insight.close_button"
               >
                 <X size={14} style={{ color: "#64748b" }} />
               </button>
@@ -369,7 +531,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                     key={insight.text}
                     className="rounded p-3 flex gap-3"
                     style={{
-                      background: `${insightStyle.bar}10`,
+                      background: `${insightStyle.bar}0d`,
                       border: `1px solid ${insightStyle.bar}30`,
                     }}
                   >
@@ -389,7 +551,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                       </div>
                       <div
                         className="text-xs leading-relaxed"
-                        style={{ color: "#cbd5e1" }}
+                        style={{ color: "#374151" }}
                       >
                         {insight.text}
                       </div>
@@ -402,7 +564,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
             {/* Footer */}
             <div
               className="px-4 py-2.5 border-t text-[9px] text-center"
-              style={{ borderColor: "#7c3aed30", color: "#4c1d95" }}
+              style={{ borderColor: "#ede9fe", color: "#7c3aed" }}
             >
               Analysis based on live press data · Banco Aluminium MES
             </div>

@@ -8,7 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { oeeQualityData, outputRatesData } from "../../mockData";
+import type { PressData } from "../../mockData";
 
 interface ProductionData {
   press: string;
@@ -20,8 +20,12 @@ interface ChartsProps {
   productionData: ProductionData[];
 }
 
-const chartBg = "#0f1729";
-const gridColor = "#1e2d45";
+interface PressChartsProps {
+  presses: PressData[];
+}
+
+const chartBg = "#ffffff";
+const gridColor = "#e2e8f0";
 const textColor = "#64748b";
 const axisStyle = {
   fontSize: 9,
@@ -31,13 +35,13 @@ const axisStyle = {
 
 const PanelHeader = ({ title }: { title: string }) => (
   <div
-    className="flex items-center gap-2 px-3 py-1.5 border-b border-[#1a2d45]"
-    style={{ background: "#0a111e" }}
+    className="flex items-center gap-2 px-3 py-1.5 border-b border-[#e2e8f0]"
+    style={{ background: "#f8fafc" }}
   >
     <div className="w-0.5 h-3 rounded-full" style={{ background: "#3b82f6" }} />
     <span
       className="text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: "#7090b0", letterSpacing: "0.1em" }}
+      style={{ color: "#64748b", letterSpacing: "0.1em" }}
     >
       {title}
     </span>
@@ -59,18 +63,19 @@ const CustomTooltip = ({
     <div
       className="rounded border px-2 py-1.5 text-[10px]"
       style={{
-        background: "#0d1526",
-        borderColor: "#1e2d45",
-        color: "#e2e8f0",
+        background: "#ffffff",
+        borderColor: "#e2e8f0",
+        color: "#1e293b",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
       }}
     >
-      <div className="font-bold mb-1" style={{ color: "#94a3b8" }}>
+      <div className="font-bold mb-1" style={{ color: "#64748b" }}>
         {label}
       </div>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-sm" style={{ background: p.color }} />
-          <span style={{ color: "#94a3b8" }}>{p.name}:</span>
+          <span style={{ color: "#64748b" }}>{p.name}:</span>
           <span className="font-mono font-bold" style={{ color: p.color }}>
             {p.value}
           </span>
@@ -83,8 +88,8 @@ const CustomTooltip = ({
 export function ProductionVsPlanChart({ productionData }: ChartsProps) {
   return (
     <div
-      className="flex flex-col rounded border border-[#1a2d45]"
-      style={{ background: chartBg }}
+      className="flex flex-col rounded border border-[#e2e8f0]"
+      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
       <PanelHeader title="Production vs Plan (MT)" />
       <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
@@ -115,14 +120,14 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: "#ffffff08" }}
+              cursor={{ fill: "#00000008" }}
             />
             <Legend
               wrapperStyle={{
                 fontSize: 9,
                 paddingTop: 2,
                 paddingBottom: 4,
-                color: "#5a7090",
+                color: "#64748b",
               }}
               iconSize={7}
               iconType="square"
@@ -148,17 +153,23 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
   );
 }
 
-export function OEEQualityChart() {
+export function OEEQualityChart({ presses }: PressChartsProps) {
+  const data = presses.map((p) => ({
+    press: `${p.id} (${p.name})`,
+    oee: Number.parseFloat(p.oee.toFixed(1)),
+    quality: Number.parseFloat((p.recovery * 1.02).toFixed(1)), // approx quality from recovery
+  }));
+
   return (
     <div
-      className="flex flex-col rounded border border-[#1a2d45]"
-      style={{ background: chartBg }}
+      className="flex flex-col rounded border border-[#e2e8f0]"
+      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
       <PanelHeader title="OEE & Quality (%)" />
       <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
         <ResponsiveContainer width="100%" height={168}>
           <BarChart
-            data={oeeQualityData}
+            data={data}
             barCategoryGap="30%"
             barGap={2}
             margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
@@ -184,14 +195,14 @@ export function OEEQualityChart() {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: "#ffffff08" }}
+              cursor={{ fill: "#00000008" }}
             />
             <Legend
               wrapperStyle={{
                 fontSize: 9,
                 paddingTop: 2,
                 paddingBottom: 4,
-                color: "#5a7090",
+                color: "#64748b",
               }}
               iconSize={7}
               iconType="square"
@@ -217,17 +228,23 @@ export function OEEQualityChart() {
   );
 }
 
-export function OutputRatesChart() {
+export function OutputRatesChart({ presses }: PressChartsProps) {
+  const data = presses.map((p) => ({
+    press: `${p.id} (${p.name})`,
+    dieTarget: p.dieTarget,
+    pressActual: p.kgPerHour,
+  }));
+
   return (
     <div
-      className="flex flex-col rounded border border-[#1a2d45]"
-      style={{ background: chartBg }}
+      className="flex flex-col rounded border border-[#e2e8f0]"
+      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
     >
       <PanelHeader title="Output Rates (Kg/H)" />
       <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
         <ResponsiveContainer width="100%" height={168}>
           <BarChart
-            data={outputRatesData}
+            data={data}
             barCategoryGap="30%"
             barGap={2}
             margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
@@ -252,14 +269,14 @@ export function OutputRatesChart() {
             />
             <Tooltip
               content={<CustomTooltip />}
-              cursor={{ fill: "#ffffff08" }}
+              cursor={{ fill: "#00000008" }}
             />
             <Legend
               wrapperStyle={{
                 fontSize: 9,
                 paddingTop: 2,
                 paddingBottom: 4,
-                color: "#5a7090",
+                color: "#64748b",
               }}
               iconSize={7}
               iconType="square"

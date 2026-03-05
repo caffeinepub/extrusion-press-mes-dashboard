@@ -28,6 +28,7 @@ import {
   YAxis,
 } from "recharts";
 import type { OEEData, Plant, Press, ProductionMetrics } from "../../backend.d";
+import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -37,6 +38,8 @@ interface MultiPlantTabProps {
   oeeData: Record<string, OEEData[]>;
   productionData: Record<string, ProductionMetrics[]>;
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["Plant Overview", "OEE Comparison", "Corporate KPIs"];
@@ -64,6 +67,8 @@ export function MultiPlantTab({
   oeeData: _oeeData,
   productionData,
   isLoading,
+  filterBadge,
+  mockPresses: _mockPresses = [],
 }: MultiPlantTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [plantFilter, setPlantFilter] = useState("All");
@@ -174,13 +179,47 @@ export function MultiPlantTab({
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
 
+      {/* Filter badge for Plant Overview sub-tab */}
+      {subTab === "Plant Overview" && filterBadge && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
+
       {/* Filter bar for OEE Comparison and Corporate KPIs */}
       {(subTab === "OEE Comparison" || subTab === "Corporate KPIs") &&
         plants.length > 0 && (
           <div
-            className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
-            style={{ background: "#070c16" }}
+            className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
+            style={{ background: "#f8fafc" }}
           >
+            {filterBadge && (
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+                style={{
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  borderColor: "#bfdbfe",
+                }}
+              >
+                {filterBadge}
+              </span>
+            )}
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
               Plant:
             </span>

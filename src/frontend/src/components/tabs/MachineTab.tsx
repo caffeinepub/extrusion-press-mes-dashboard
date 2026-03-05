@@ -20,6 +20,7 @@ import { AlertTriangle, Gauge, RefreshCw, Thermometer } from "lucide-react";
 import { useState } from "react";
 import type { Alarm, MachineParameters, Press } from "../../backend.d";
 import { useMachineParameters } from "../../hooks/useQueries";
+import type { PressData } from "../../mockData";
 import { formatTime, getAlarmSeverityColor } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -27,6 +28,8 @@ interface MachineTabProps {
   presses: Press[];
   alarms: Alarm[];
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["Temperature", "Pressure & Speed", "Alarms"];
@@ -200,10 +203,16 @@ function MachineParamsContent({
   return null;
 }
 
-export function MachineTab({ presses, alarms, isLoading }: MachineTabProps) {
+export function MachineTab({
+  presses,
+  alarms,
+  isLoading,
+  filterBadge,
+  mockPresses = [],
+}: MachineTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [selectedPress, setSelectedPress] = useState<string>(
-    presses[0]?.id || "",
+    presses[0]?.id || mockPresses[0]?.id || "",
   );
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("All");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -249,8 +258,20 @@ export function MachineTab({ presses, alarms, isLoading }: MachineTabProps) {
       {/* Controls bar */}
       <div
         className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
-        style={{ background: "#070c16" }}
+        style={{ background: "#f8fafc" }}
       >
+        {filterBadge && (
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        )}
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
           Select Press:
         </span>
@@ -264,6 +285,12 @@ export function MachineTab({ presses, alarms, isLoading }: MachineTabProps) {
                 {p.name} ({p.id})
               </SelectItem>
             ))}
+            {presses.length === 0 &&
+              mockPresses.map((mp) => (
+                <SelectItem key={mp.id} value={mp.id} className="text-xs">
+                  {mp.name} ({mp.id})
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         {subTab === "Alarms" && (

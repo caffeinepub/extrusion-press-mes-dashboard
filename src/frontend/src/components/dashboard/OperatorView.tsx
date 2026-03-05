@@ -16,12 +16,12 @@ function MachineCard({ press }: { press: PressData }) {
   return (
     <div
       className="rounded border p-3 flex flex-col gap-2"
-      style={{ background: "#0c1425", borderColor: "#1e2d45" }}
+      style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
     >
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="font-black text-sm" style={{ color: "#e2e8f0" }}>
+          <div className="font-black text-sm" style={{ color: "#1e293b" }}>
             {press.id} ({press.name})
           </div>
           <div className="text-[9px]" style={{ color: "#475569" }}>
@@ -44,16 +44,16 @@ function MachineCard({ press }: { press: PressData }) {
       <div className="grid grid-cols-2 gap-1.5">
         <div
           className="rounded px-2 py-1.5 flex items-center gap-2"
-          style={{ background: "#111e33" }}
+          style={{ background: "#fff7ed", border: "1px solid #fed7aa" }}
         >
-          <Thermometer size={12} style={{ color: "#f97316" }} />
+          <Thermometer size={12} style={{ color: "#ea580c" }} />
           <div>
             <div className="text-[8px]" style={{ color: "#64748b" }}>
               Billet Temp
             </div>
             <div
               className="font-mono font-bold text-[12px]"
-              style={{ color: "#f97316" }}
+              style={{ color: "#ea580c" }}
             >
               {press.billetTemp > 0 ? `${press.billetTemp}°C` : "--"}
             </div>
@@ -61,16 +61,16 @@ function MachineCard({ press }: { press: PressData }) {
         </div>
         <div
           className="rounded px-2 py-1.5 flex items-center gap-2"
-          style={{ background: "#111e33" }}
+          style={{ background: "#eff6ff", border: "1px solid #bfdbfe" }}
         >
-          <Gauge size={12} style={{ color: "#3b82f6" }} />
+          <Gauge size={12} style={{ color: "#2563eb" }} />
           <div>
             <div className="text-[8px]" style={{ color: "#64748b" }}>
               Ram Pressure
             </div>
             <div
               className="font-mono font-bold text-[12px]"
-              style={{ color: "#3b82f6" }}
+              style={{ color: "#2563eb" }}
             >
               {press.ramPressure > 0 ? `${press.ramPressure} bar` : "--"}
             </div>
@@ -78,16 +78,16 @@ function MachineCard({ press }: { press: PressData }) {
         </div>
         <div
           className="rounded px-2 py-1.5 flex items-center gap-2"
-          style={{ background: "#111e33" }}
+          style={{ background: "#fffbeb", border: "1px solid #fde68a" }}
         >
-          <Zap size={12} style={{ color: "#f59e0b" }} />
+          <Zap size={12} style={{ color: "#d97706" }} />
           <div>
             <div className="text-[8px]" style={{ color: "#64748b" }}>
               Ext. Speed
             </div>
             <div
               className="font-mono font-bold text-[12px]"
-              style={{ color: "#f59e0b" }}
+              style={{ color: "#d97706" }}
             >
               {press.extrusionSpeed > 0
                 ? `${press.extrusionSpeed} m/min`
@@ -97,9 +97,9 @@ function MachineCard({ press }: { press: PressData }) {
         </div>
         <div
           className="rounded px-2 py-1.5 flex items-center gap-2"
-          style={{ background: "#111e33" }}
+          style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}
         >
-          <div className="text-[11px]" style={{ color: "#22c55e" }}>
+          <div className="text-[11px]" style={{ color: "#16a34a" }}>
             ⚡
           </div>
           <div>
@@ -108,7 +108,7 @@ function MachineCard({ press }: { press: PressData }) {
             </div>
             <div
               className="font-mono font-bold text-[12px]"
-              style={{ color: "#22c55e" }}
+              style={{ color: "#16a34a" }}
             >
               {press.kgPerHour > 0 ? press.kgPerHour.toLocaleString() : "--"}
             </div>
@@ -120,7 +120,7 @@ function MachineCard({ press }: { press: PressData }) {
       <div className="flex gap-2">
         <div
           className="flex-1 rounded px-2 py-1"
-          style={{ background: "#111e33" }}
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
         >
           <div className="text-[8px] mb-0.5" style={{ color: "#64748b" }}>
             OEE
@@ -130,10 +130,10 @@ function MachineCard({ press }: { press: PressData }) {
             style={{
               color:
                 press.oee >= 85
-                  ? "#22c55e"
+                  ? "#16a34a"
                   : press.oee >= 70
-                    ? "#f59e0b"
-                    : "#ef4444",
+                    ? "#d97706"
+                    : "#dc2626",
             }}
           >
             {press.oee.toFixed(1)}%
@@ -141,7 +141,7 @@ function MachineCard({ press }: { press: PressData }) {
         </div>
         <div
           className="flex-1 rounded px-2 py-1"
-          style={{ background: "#111e33" }}
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
         >
           <div className="text-[8px] mb-0.5" style={{ color: "#64748b" }}>
             Scrap
@@ -151,10 +151,10 @@ function MachineCard({ press }: { press: PressData }) {
             style={{
               color:
                 press.scrap > 2
-                  ? "#ef4444"
+                  ? "#dc2626"
                   : press.scrap >= 1.5
-                    ? "#f59e0b"
-                    : "#22c55e",
+                    ? "#d97706"
+                    : "#16a34a",
             }}
           >
             {press.scrap.toFixed(1)}%
@@ -162,14 +162,14 @@ function MachineCard({ press }: { press: PressData }) {
         </div>
         <div
           className="flex-1 rounded px-2 py-1"
-          style={{ background: "#111e33" }}
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
         >
           <div className="text-[8px] mb-0.5" style={{ color: "#64748b" }}>
             Operator
           </div>
           <div
             className="text-[10px] font-semibold truncate"
-            style={{ color: "#94a3b8" }}
+            style={{ color: "#475569" }}
           >
             {press.operator}
           </div>

@@ -27,10 +27,14 @@ import {
 } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
+import type { PressData } from "../../mockData";
+
 interface ProductionTabProps {
   presses: Press[];
   productionData: Record<string, ProductionMetrics[]>;
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["Real-Time Status", "Output Metrics", "Throughput"];
@@ -199,6 +203,8 @@ export function ProductionTab({
   presses,
   productionData,
   isLoading,
+  filterBadge,
+  mockPresses = [],
 }: ProductionTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [pressFilter, setPressFilter] = useState("All");
@@ -216,10 +222,15 @@ export function ProductionTab({
     );
   }
 
+  // Use backend presses if available, otherwise show mock presses count in filter
+  const displayPresses = presses.length > 0 ? presses : [];
+
   const filteredPresses =
     pressFilter === "All"
-      ? presses
-      : presses.filter((p) => p.id === pressFilter || p.name === pressFilter);
+      ? displayPresses
+      : displayPresses.filter(
+          (p) => p.id === pressFilter || p.name === pressFilter,
+        );
 
   return (
     <div>
@@ -227,8 +238,8 @@ export function ProductionTab({
 
       {/* Filter bar */}
       <div
-        className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
-        style={{ background: "#070c16" }}
+        className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
+        style={{ background: "#f8fafc" }}
       >
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
           Press Filter:
@@ -241,7 +252,7 @@ export function ProductionTab({
             <SelectItem value="All" className="text-xs">
               All Presses
             </SelectItem>
-            {presses.map((p) => (
+            {displayPresses.map((p) => (
               <SelectItem key={p.id} value={p.id} className="text-xs">
                 {p.name} ({p.id})
               </SelectItem>
@@ -251,6 +262,23 @@ export function ProductionTab({
         <span className="text-[10px] text-muted-foreground">
           {filteredPresses.length} press(es) shown
         </span>
+        {filterBadge && (
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        )}
+        {presses.length === 0 && mockPresses.length > 0 && (
+          <span className="text-[10px] text-amber-600 font-medium px-2 py-0.5 rounded border border-amber-200 bg-amber-50">
+            Showing mock data — {mockPresses.length} presses
+          </span>
+        )}
       </div>
 
       <div className="p-4 space-y-4">
@@ -263,43 +291,115 @@ export function ProductionTab({
               </h3>
               <div className="flex items-center gap-4 text-[10px]">
                 {(["Running", "Idle", "Breakdown", "Setup"] as const).map(
-                  (s) => (
-                    <span
-                      key={s}
-                      className="flex items-center gap-1 text-muted-foreground"
-                    >
+                  (s) => {
+                    const statusList = presses.length > 0 ? presses : [];
+                    return (
                       <span
-                        className={`w-2 h-2 rounded-full inline-block ${s === "Running" ? "bg-emerald-400" : s === "Idle" ? "bg-slate-400" : s === "Breakdown" ? "bg-red-400" : "bg-yellow-400"}`}
-                      />
-                      {s}:{" "}
-                      {
-                        presses.filter(
-                          (p) => p.status.toLowerCase() === s.toLowerCase(),
-                        ).length
-                      }
-                    </span>
-                  ),
+                        key={s}
+                        className="flex items-center gap-1 text-muted-foreground"
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full inline-block ${s === "Running" ? "bg-emerald-400" : s === "Idle" ? "bg-slate-400" : s === "Breakdown" ? "bg-red-400" : "bg-yellow-400"}`}
+                        />
+                        {s}:{" "}
+                        {
+                          statusList.filter(
+                            (p) => p.status.toLowerCase() === s.toLowerCase(),
+                          ).length
+                        }
+                      </span>
+                    );
+                  },
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filteredPresses.map((press) => {
-                const data = productionData[press.id];
-                const latest = data ? getLatest(data) : null;
-                return (
-                  <PressStatusCard
-                    key={press.id}
-                    press={press}
-                    metrics={latest}
-                  />
-                );
-              })}
-              {filteredPresses.length === 0 && (
-                <div className="col-span-4 text-center text-muted-foreground text-sm py-8">
-                  No press data available
-                </div>
-              )}
-            </div>
+            {/* Show mock press cards when no backend data */}
+            {presses.length === 0 && mockPresses.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {mockPresses.map((mp) => (
+                  <div key={mp.id} className="mes-card p-3 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-display font-semibold text-sm text-foreground">
+                        {mp.name}
+                      </span>
+                      <span
+                        className={`flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded border ${mp.status === "Running" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : mp.status === "Breakdown" ? "bg-red-50 text-red-700 border-red-200" : mp.status === "Idle" ? "bg-slate-50 text-slate-600 border-slate-200" : "bg-yellow-50 text-yellow-700 border-yellow-200"}`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${mp.status === "Running" ? "bg-emerald-400" : mp.status === "Breakdown" ? "bg-red-400" : mp.status === "Idle" ? "bg-slate-400" : "bg-yellow-400"}`}
+                        />
+                        {mp.status.toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Die: </span>
+                        <span className="font-mono">{mp.dieNumber}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Alloy: </span>
+                        <span className="font-mono">{mp.alloyGrade}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Order: </span>
+                        <span className="font-mono truncate">
+                          {mp.workOrder}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Shift: </span>
+                        <span className="font-mono">{mp.shift}</span>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-muted-foreground">
+                          Operator:{" "}
+                        </span>
+                        <span>{mp.operator}</span>
+                      </div>
+                    </div>
+                    <div className="border-t border-border pt-2 mt-1 grid grid-cols-3 gap-1">
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">OEE: </span>
+                        <span className="font-mono text-chart-1">
+                          {mp.oee.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">Kg/h: </span>
+                        <span className="font-mono text-chart-2">
+                          {mp.kgPerHour.toFixed(0)}
+                        </span>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-muted-foreground">Act: </span>
+                        <span className="font-mono text-chart-3">
+                          {mp.actual.toFixed(1)}MT
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {filteredPresses.map((press) => {
+                  const data = productionData[press.id];
+                  const latest = data ? getLatest(data) : null;
+                  return (
+                    <PressStatusCard
+                      key={press.id}
+                      press={press}
+                      metrics={latest}
+                    />
+                  );
+                })}
+                {filteredPresses.length === 0 && (
+                  <div className="col-span-4 text-center text-muted-foreground text-sm py-8">
+                    No press data available
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

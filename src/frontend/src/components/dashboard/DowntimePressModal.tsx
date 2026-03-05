@@ -7,31 +7,34 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X } from "lucide-react";
 
-interface PressInputRow {
+interface PressDowntimeRow {
   pressId: string;
   pressName: string;
   status: "Running" | "Idle" | "Breakdown" | "Setup";
-  billetCount: number;
-  inputWeightMT: number;
-  avgBilletWtKg: number;
-  inputRateMTHr: number;
+  downtimeHrs: number;
+  incidents: number;
+  avgDurationMin: number;
+  mttr: number; // Mean Time To Repair (min)
+  share: number; // % of this category's total downtime
   accentColor: string;
 }
 
-interface TotalInputModalProps {
+interface DowntimePressModalProps {
   open: boolean;
   onClose: () => void;
-  totalInput: number;
+  categoryName: string;
+  categoryColor: string;
+  totalHrs: number; // total plant downtime hrs for context
 }
 
 const STATUS_STYLES: Record<
-  PressInputRow["status"],
+  PressDowntimeRow["status"],
   { bg: string; color: string; label: string }
 > = {
   Running: { bg: "#dcfce7", color: "#16a34a", label: "RUNNING" },
-  Idle: { bg: "#ca8a0422", color: "#f59e0b", label: "IDLE" },
-  Breakdown: { bg: "#dc262622", color: "#ef4444", label: "BREAKDOWN" },
-  Setup: { bg: "#2563eb22", color: "#60a5fa", label: "SETUP" },
+  Idle: { bg: "#fef3c722", color: "#f59e0b", label: "IDLE" },
+  Breakdown: { bg: "#fecaca", color: "#ef4444", label: "BREAKDOWN" },
+  Setup: { bg: "#dbeafe", color: "#3b82f6", label: "SETUP" },
 };
 
 const PRESS_ACCENT_COLORS = [
@@ -42,86 +45,69 @@ const PRESS_ACCENT_COLORS = [
   "#a855f7",
 ];
 
-function buildPressData(totalInput: number): PressInputRow[] {
-  // Realistic distribution — sums to ~totalInput
-  const weights = [0.26, 0.05, 0.24, 0.22, 0.23];
+// Seeded pseudo-random for deterministic mock data
+function seededRand(seed: number): number {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+}
+
+function buildDowntimePressData(
+  categoryName: string,
+  totalHrs: number,
+): PressDowntimeRow[] {
   const presses: Array<{
     pressId: string;
     pressName: string;
-    status: PressInputRow["status"];
-    billetCount: number;
-    tonnesPerBillet: number;
+    status: PressDowntimeRow["status"];
   }> = [
-    {
-      pressId: "P3300",
-      pressName: "Titan",
-      status: "Running",
-      billetCount: 42,
-      tonnesPerBillet: 0.062,
-    },
-    {
-      pressId: "P2500",
-      pressName: "Atlas",
-      status: "Breakdown",
-      billetCount: 8,
-      tonnesPerBillet: 0.063,
-    },
-    {
-      pressId: "P1800",
-      pressName: "Vulcan",
-      status: "Running",
-      billetCount: 38,
-      tonnesPerBillet: 0.063,
-    },
-    {
-      pressId: "P1460",
-      pressName: "Hermes",
-      status: "Running",
-      billetCount: 36,
-      tonnesPerBillet: 0.064,
-    },
-    {
-      pressId: "P1100",
-      pressName: "Swift",
-      status: "Running",
-      billetCount: 37,
-      tonnesPerBillet: 0.062,
-    },
+    { pressId: "P3300", pressName: "Titan", status: "Running" },
+    { pressId: "P2500", pressName: "Atlas", status: "Breakdown" },
+    { pressId: "P1800", pressName: "Vulcan", status: "Running" },
+    { pressId: "P1460", pressName: "Hermes", status: "Idle" },
+    { pressId: "P1100", pressName: "Swift", status: "Running" },
   ];
 
+  // Use category name as seed for deterministic distribution
+  const seed = categoryName.charCodeAt(0) + categoryName.length * 7;
+  const rawWeights = presses.map(
+    (_, i) => 0.5 + seededRand(seed + i * 3) * 1.5,
+  );
+  const sumW = rawWeights.reduce((a, b) => a + b, 0);
+  const weights = rawWeights.map((w) => w / sumW);
+
+  const categoryHrs = totalHrs * (0.08 + seededRand(seed + 100) * 0.18); // 8-26% of total
+
   return presses.map((p, i) => {
-    const inputWeightMT = totalInput * weights[i];
-    const avgBilletWtKg = (inputWeightMT * 1000) / p.billetCount;
-    // Running presses have a real input rate; broken press has reduced rate
-    const hoursElapsed = p.status === "Breakdown" ? 6 : 4.5;
-    const inputRateMTHr =
-      p.status === "Breakdown"
-        ? inputWeightMT / 8
-        : inputWeightMT / hoursElapsed;
+    const downtimeHrs = categoryHrs * weights[i];
+    const incidents = Math.round(1 + seededRand(seed + i * 5 + 1) * 7);
+    const avgDurationMin = (downtimeHrs * 60) / Math.max(incidents, 1);
+    const mttr = avgDurationMin * (0.7 + seededRand(seed + i * 5 + 2) * 0.6);
 
     return {
       pressId: p.pressId,
       pressName: p.pressName,
       status: p.status,
-      billetCount: p.billetCount,
-      inputWeightMT,
-      avgBilletWtKg,
-      inputRateMTHr,
+      downtimeHrs,
+      incidents,
+      avgDurationMin,
+      mttr,
+      share: weights[i] * 100,
       accentColor: PRESS_ACCENT_COLORS[i],
     };
   });
 }
 
-export function TotalInputModal({
+export function DowntimePressModal({
   open,
   onClose,
-  totalInput,
-}: TotalInputModalProps) {
-  const pressRows = buildPressData(totalInput);
-  const sumInput = pressRows.reduce((acc, r) => acc + r.inputWeightMT, 0);
-  const sumBillets = pressRows.reduce((acc, r) => acc + r.billetCount, 0);
-  const sumAvgBillet = sumInput > 0 ? (sumInput * 1000) / sumBillets : 0;
-  const sumInputRate = pressRows.reduce((acc, r) => acc + r.inputRateMTHr, 0);
+  categoryName,
+  categoryColor,
+  totalHrs,
+}: DowntimePressModalProps) {
+  const pressRows = buildDowntimePressData(categoryName, totalHrs);
+  const totalCategoryHrs = pressRows.reduce((s, r) => s + r.downtimeHrs, 0);
+  const totalIncidents = pressRows.reduce((s, r) => s + r.incidents, 0);
+  const avgMTTR = pressRows.reduce((s, r) => s + r.mttr, 0) / pressRows.length;
 
   const today = new Date();
   const dateLabel = today.toLocaleDateString("en-IN", {
@@ -135,22 +121,23 @@ export function TotalInputModal({
       <DialogContent
         className="p-0 gap-0 border-0 overflow-hidden"
         style={{
-          maxWidth: "860px",
+          maxWidth: "880px",
           width: "95vw",
           background: "#ffffff",
           border: "1px solid #e2e8f0",
           borderRadius: "8px",
           boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
         }}
+        data-ocid="dashboard.downtime_press.modal"
       >
-        {/* Custom close button */}
+        {/* Close button */}
         <button
           type="button"
           onClick={onClose}
           className="absolute right-3 top-3 z-10 flex items-center justify-center w-7 h-7 rounded transition-colors"
           style={{ color: "#64748b", background: "#f1f5f9" }}
           aria-label="Close"
-          data-ocid="kpi.total_input.close_button"
+          data-ocid="dashboard.downtime_press.close_button"
         >
           <X size={14} />
         </button>
@@ -161,10 +148,9 @@ export function TotalInputModal({
             className="flex items-center gap-2 mb-1"
             style={{ borderBottom: "1px solid #e2e8f0", paddingBottom: "12px" }}
           >
-            {/* Accent strip */}
             <div
               className="w-1 h-8 rounded-full shrink-0"
-              style={{ background: "#22c55e" }}
+              style={{ background: categoryColor }}
             />
             <div>
               <DialogTitle
@@ -175,7 +161,7 @@ export function TotalInputModal({
                   letterSpacing: "0.04em",
                 }}
               >
-                TOTAL INPUT — PRESS WISE BREAKDOWN
+                DOWNTIME — {categoryName.toUpperCase()} — PRESS WISE BREAKDOWN
               </DialogTitle>
               <p
                 className="text-[10px] mt-0.5"
@@ -196,18 +182,18 @@ export function TotalInputModal({
               <span
                 className="text-[24px] font-black tabular-nums"
                 style={{
-                  color: "#16a34a",
+                  color: categoryColor,
                   fontFamily: '"JetBrains Mono", monospace',
                   lineHeight: 1,
                 }}
               >
-                {totalInput.toFixed(2)}
+                {totalCategoryHrs.toFixed(2)}
               </span>
               <span
                 className="text-[10px] font-bold"
-                style={{ color: "#86efac" }}
+                style={{ color: categoryColor }}
               >
-                MT TOTAL INPUT
+                HRS — {categoryName.toUpperCase()}
               </span>
             </div>
           </div>
@@ -215,7 +201,47 @@ export function TotalInputModal({
 
         {/* Body */}
         <div className="px-5 pt-3 pb-5">
-          {/* Mini bar chart */}
+          {/* Summary KPIs */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {[
+              {
+                label: "TOTAL DOWNTIME",
+                value: `${totalCategoryHrs.toFixed(2)} HRS`,
+                color: categoryColor,
+              },
+              {
+                label: "TOTAL INCIDENTS",
+                value: `${totalIncidents}`,
+                color: "#ef4444",
+              },
+              {
+                label: "AVG MTTR",
+                value: `${avgMTTR.toFixed(1)} MIN`,
+                color: "#f59e0b",
+              },
+            ].map((k) => (
+              <div
+                key={k.label}
+                className="rounded px-3 py-2.5 flex flex-col gap-0.5"
+                style={{ background: "#f8fafc", border: "1px solid #e2e8f0" }}
+              >
+                <span
+                  className="text-[9px] font-bold uppercase tracking-widest"
+                  style={{ color: "#64748b" }}
+                >
+                  {k.label}
+                </span>
+                <span
+                  className="font-black font-mono text-[18px] leading-tight tabular-nums"
+                  style={{ color: k.color }}
+                >
+                  {k.value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Horizontal contribution bar chart */}
           <div
             className="mb-4 rounded"
             style={{
@@ -228,62 +254,63 @@ export function TotalInputModal({
               className="text-[9px] font-bold uppercase tracking-widest mb-2"
               style={{ color: "#64748b" }}
             >
-              INPUT CONTRIBUTION BY PRESS
+              DOWNTIME CONTRIBUTION BY PRESS
             </p>
             <div className="flex flex-col gap-1.5">
-              {pressRows.map((row) => {
-                const pct =
-                  sumInput > 0 ? (row.inputWeightMT / sumInput) * 100 : 0;
-                return (
-                  <div key={row.pressId} className="flex items-center gap-2">
-                    <span
-                      className="text-[10px] font-bold w-[90px] shrink-0"
-                      style={{
-                        color: row.accentColor,
-                        fontFamily: '"JetBrains Mono", monospace',
-                      }}
-                    >
-                      {row.pressId} {row.pressName}
-                    </span>
+              {pressRows.map((row) => (
+                <div key={row.pressId} className="flex items-center gap-2">
+                  <span
+                    className="text-[10px] font-bold shrink-0"
+                    style={{
+                      color: row.accentColor,
+                      fontFamily: '"JetBrains Mono", monospace',
+                      width: "100px",
+                    }}
+                  >
+                    {row.pressId} {row.pressName}
+                  </span>
+                  <div
+                    className="flex-1 h-3 rounded-sm overflow-hidden"
+                    style={{ background: "#e2e8f0" }}
+                  >
                     <div
-                      className="flex-1 h-3 rounded-sm overflow-hidden"
-                      style={{ background: "#e2e8f0" }}
-                    >
-                      <div
-                        className="h-full rounded-sm transition-all duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          background: row.accentColor,
-                          opacity: row.status === "Breakdown" ? 0.45 : 0.9,
-                        }}
-                      />
-                    </div>
-                    <span
-                      className="text-[10px] font-bold w-[38px] text-right tabular-nums shrink-0"
+                      className="h-full rounded-sm transition-all duration-500"
                       style={{
-                        color: row.accentColor,
-                        fontFamily: '"JetBrains Mono", monospace',
+                        width: `${row.share}%`,
+                        background: row.accentColor,
+                        opacity: row.status === "Breakdown" ? 0.5 : 0.88,
                       }}
-                    >
-                      {pct.toFixed(1)}%
-                    </span>
-                    <span
-                      className="text-[10px] tabular-nums w-[48px] text-right shrink-0"
-                      style={{
-                        color: "#475569",
-                        fontFamily: '"JetBrains Mono", monospace',
-                      }}
-                    >
-                      {row.inputWeightMT.toFixed(2)} MT
-                    </span>
+                    />
                   </div>
-                );
-              })}
+                  <span
+                    className="text-[10px] font-bold tabular-nums shrink-0"
+                    style={{
+                      color: row.accentColor,
+                      fontFamily: '"JetBrains Mono", monospace',
+                      width: "38px",
+                      textAlign: "right",
+                    }}
+                  >
+                    {row.share.toFixed(1)}%
+                  </span>
+                  <span
+                    className="text-[10px] tabular-nums shrink-0"
+                    style={{
+                      color: "#475569",
+                      fontFamily: '"JetBrains Mono", monospace',
+                      width: "52px",
+                      textAlign: "right",
+                    }}
+                  >
+                    {row.downtimeHrs.toFixed(2)} hr
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Detailed Table */}
-          <ScrollArea style={{ maxHeight: "300px" }}>
+          <ScrollArea style={{ maxHeight: "260px" }}>
             <div
               className="rounded overflow-hidden"
               style={{ border: "1px solid #e2e8f0" }}
@@ -294,11 +321,11 @@ export function TotalInputModal({
                     {[
                       "PRESS",
                       "STATUS",
-                      "BILLET CT",
-                      "INPUT WT (MT)",
-                      "AVG BILLET WT (KG)",
-                      "INPUT RATE (MT/HR)",
-                      "% OF TOTAL",
+                      "DOWNTIME (HRS)",
+                      "INCIDENTS",
+                      "AVG DUR (MIN)",
+                      "MTTR (MIN)",
+                      "% SHARE",
                     ].map((h) => (
                       <th
                         key={h}
@@ -317,8 +344,6 @@ export function TotalInputModal({
                 </thead>
                 <tbody>
                   {pressRows.map((row, idx) => {
-                    const pct =
-                      sumInput > 0 ? (row.inputWeightMT / sumInput) * 100 : 0;
                     const st = STATUS_STYLES[row.status];
                     return (
                       <tr
@@ -327,8 +352,9 @@ export function TotalInputModal({
                           background: idx % 2 === 0 ? "#f8fafc" : "#ffffff",
                           borderBottom: "1px solid #f1f5f9",
                         }}
+                        data-ocid={`dashboard.downtime_press.row.${idx + 1}`}
                       >
-                        {/* Press ID */}
+                        {/* Press */}
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
                             <div
@@ -349,7 +375,7 @@ export function TotalInputModal({
                             </span>
                           </div>
                         </td>
-                        {/* Status badge */}
+                        {/* Status */}
                         <td className="px-3 py-2.5">
                           <span
                             className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
@@ -362,27 +388,27 @@ export function TotalInputModal({
                             {st.label}
                           </span>
                         </td>
-                        {/* Billet Count */}
-                        <td
-                          className="px-3 py-2.5 tabular-nums font-semibold text-center"
-                          style={{
-                            color: "#334155",
-                            fontFamily: '"JetBrains Mono", monospace',
-                          }}
-                        >
-                          {row.billetCount}
-                        </td>
-                        {/* Input Weight */}
+                        {/* Downtime hrs */}
                         <td
                           className="px-3 py-2.5 tabular-nums font-bold text-right"
                           style={{
-                            color: "#1e293b",
+                            color: categoryColor,
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.inputWeightMT.toFixed(2)}
+                          {row.downtimeHrs.toFixed(2)}
                         </td>
-                        {/* Avg Billet Wt */}
+                        {/* Incidents */}
+                        <td
+                          className="px-3 py-2.5 tabular-nums font-semibold text-center"
+                          style={{
+                            color: "#ef4444",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {row.incidents}
+                        </td>
+                        {/* Avg Duration */}
                         <td
                           className="px-3 py-2.5 tabular-nums text-right"
                           style={{
@@ -390,49 +416,53 @@ export function TotalInputModal({
                             fontFamily: '"JetBrains Mono", monospace',
                           }}
                         >
-                          {row.avgBilletWtKg.toFixed(1)}
+                          {row.avgDurationMin.toFixed(1)}
                         </td>
-                        {/* Input Rate */}
+                        {/* MTTR */}
                         <td
-                          className="px-3 py-2.5 tabular-nums font-semibold text-right"
+                          className="px-3 py-2.5 tabular-nums text-right"
                           style={{
                             color:
-                              row.status === "Breakdown"
+                              row.mttr > 60
                                 ? "#dc2626"
-                                : "#16a34a",
+                                : row.mttr > 30
+                                  ? "#f59e0b"
+                                  : "#16a34a",
                             fontFamily: '"JetBrains Mono", monospace',
+                            fontWeight: 600,
                           }}
                         >
-                          {row.inputRateMTHr.toFixed(2)}
+                          {row.mttr.toFixed(1)}
                         </td>
-                        {/* % of Total with progress bar */}
+                        {/* % Share with bar */}
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-2">
                             <div
                               className="flex-1 h-2 rounded-full overflow-hidden"
                               style={{
                                 background: "#e2e8f0",
-                                minWidth: "60px",
+                                minWidth: "50px",
                               }}
                             >
                               <div
                                 className="h-full rounded-full"
                                 style={{
-                                  width: `${pct}%`,
+                                  width: `${row.share}%`,
                                   background: row.accentColor,
-                                  opacity:
-                                    row.status === "Breakdown" ? 0.5 : 0.85,
+                                  opacity: 0.85,
                                 }}
                               />
                             </div>
                             <span
-                              className="text-[10px] font-bold tabular-nums w-[32px] text-right shrink-0"
+                              className="text-[10px] font-bold tabular-nums shrink-0"
                               style={{
                                 color: row.accentColor,
                                 fontFamily: '"JetBrains Mono", monospace',
+                                width: "34px",
+                                textAlign: "right",
                               }}
                             >
-                              {pct.toFixed(1)}%
+                              {row.share.toFixed(1)}%
                             </span>
                           </div>
                         </td>
@@ -440,39 +470,38 @@ export function TotalInputModal({
                     );
                   })}
                 </tbody>
-
-                {/* Summary / Totals row */}
+                {/* Totals row */}
                 <tfoot>
                   <tr
                     style={{
-                      background: "#f0fdf4",
-                      borderTop: "2px solid #86efac",
+                      background: `${categoryColor}11`,
+                      borderTop: `2px solid ${categoryColor}55`,
                     }}
                   >
                     <td
                       className="px-3 py-2.5 font-bold uppercase tracking-wider text-[10px]"
-                      style={{ color: "#16a34a" }}
+                      style={{ color: categoryColor }}
                       colSpan={2}
                     >
                       TOTAL / FLEET
                     </td>
                     <td
-                      className="px-3 py-2.5 tabular-nums font-bold text-center"
-                      style={{
-                        color: "#16a34a",
-                        fontFamily: '"JetBrains Mono", monospace',
-                      }}
-                    >
-                      {sumBillets}
-                    </td>
-                    <td
                       className="px-3 py-2.5 tabular-nums font-black text-right"
                       style={{
-                        color: "#16a34a",
+                        color: categoryColor,
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumInput.toFixed(2)}
+                      {totalCategoryHrs.toFixed(2)}
+                    </td>
+                    <td
+                      className="px-3 py-2.5 tabular-nums font-black text-center"
+                      style={{
+                        color: "#ef4444",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {totalIncidents}
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums text-right"
@@ -481,21 +510,30 @@ export function TotalInputModal({
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumAvgBillet.toFixed(1)}
+                      {pressRows.reduce((s, r) => s + r.avgDurationMin, 0) /
+                        pressRows.length >
+                      0
+                        ? (
+                            pressRows.reduce(
+                              (s, r) => s + r.avgDurationMin,
+                              0,
+                            ) / pressRows.length
+                          ).toFixed(1)
+                        : "—"}
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums font-bold text-right"
                       style={{
-                        color: "#16a34a",
+                        color: "#f59e0b",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {sumInputRate.toFixed(2)}
+                      {avgMTTR.toFixed(1)}
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums font-bold text-right"
                       style={{
-                        color: "#16a34a",
+                        color: categoryColor,
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
@@ -507,13 +545,9 @@ export function TotalInputModal({
             </div>
           </ScrollArea>
 
-          {/* Legend row */}
+          {/* Legend */}
           <div className="flex items-center gap-4 mt-3 flex-wrap">
-            {(
-              ["Running", "Idle", "Breakdown", "Setup"] as Array<
-                PressInputRow["status"]
-              >
-            ).map((s) => {
+            {(["Running", "Idle", "Breakdown", "Setup"] as const).map((s) => {
               const st = STATUS_STYLES[s];
               return (
                 <div key={s} className="flex items-center gap-1.5">

@@ -23,10 +23,10 @@ function StatusIcon({ status }: { status: "red" | "yellow" | "green" }) {
         style={{
           color:
             status === "green"
-              ? "#22c55e"
+              ? "#16a34a"
               : status === "yellow"
-                ? "#f59e0b"
-                : "#ef4444",
+                ? "#d97706"
+                : "#dc2626",
         }}
       >
         {map[status].label}
@@ -46,7 +46,7 @@ export function CEOView({
       {/* CEO Summary header */}
       <div
         className="rounded border px-4 py-3"
-        style={{ background: "#0c1425", borderColor: "#1e3a6e" }}
+        style={{ background: "#f0f9ff", borderColor: "#bae6fd" }}
       >
         <div
           className="text-[11px] font-bold uppercase tracking-widest mb-3"
@@ -67,10 +67,10 @@ export function CEOView({
               style={{
                 color:
                   fleetOEE >= 85
-                    ? "#22c55e"
+                    ? "#16a34a"
                     : fleetOEE >= 70
-                      ? "#f59e0b"
-                      : "#ef4444",
+                      ? "#d97706"
+                      : "#dc2626",
               }}
             >
               {fleetOEE.toFixed(1)}%
@@ -105,7 +105,7 @@ export function CEOView({
             </div>
             <div
               className="font-black text-3xl font-mono"
-              style={{ color: fleetUtil >= 85 ? "#22c55e" : "#f59e0b" }}
+              style={{ color: fleetUtil >= 85 ? "#16a34a" : "#d97706" }}
             >
               {fleetUtil.toFixed(1)}%
             </div>
@@ -119,43 +119,43 @@ export function CEOView({
       {/* Strategic KPI Table */}
       <div
         className="rounded border overflow-hidden"
-        style={{ borderColor: "#1e2d45" }}
+        style={{ borderColor: "#e2e8f0" }}
       >
         <div
-          className="px-3 py-2 border-b border-[#1e2d45]"
-          style={{ background: "#0d1526" }}
+          className="px-3 py-2 border-b border-[#e2e8f0]"
+          style={{ background: "#f8fafc" }}
         >
           <span
             className="text-[11px] font-bold uppercase tracking-wider"
-            style={{ color: "#94a3b8" }}
+            style={{ color: "#64748b" }}
           >
             Strategic KPI Dashboard
           </span>
         </div>
         <table className="w-full border-collapse">
           <thead>
-            <tr style={{ background: "#0a111e" }}>
+            <tr style={{ background: "#f8fafc" }}>
               <th
                 className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#475569", borderBottom: "1px solid #1e2d45" }}
+                style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}
               >
                 KPI
               </th>
               <th
                 className="px-4 py-2 text-right text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#475569", borderBottom: "1px solid #1e2d45" }}
+                style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}
               >
                 Target
               </th>
               <th
                 className="px-4 py-2 text-right text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#475569", borderBottom: "1px solid #1e2d45" }}
+                style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}
               >
                 Actual
               </th>
               <th
                 className="px-4 py-2 text-left text-[10px] font-bold uppercase tracking-wider"
-                style={{ color: "#475569", borderBottom: "1px solid #1e2d45" }}
+                style={{ color: "#64748b", borderBottom: "1px solid #e2e8f0" }}
               >
                 Status
               </th>
@@ -165,22 +165,22 @@ export function CEOView({
             {kpis.map((kpi, i) => (
               <tr
                 key={kpi.kpi}
-                style={{ background: i % 2 === 0 ? "#0c1425" : "#0f1729" }}
+                style={{ background: i % 2 === 0 ? "#f8fafc" : "#ffffff" }}
               >
                 <td
                   className="px-4 py-3"
-                  style={{ borderBottom: "1px solid #111e33" }}
+                  style={{ borderBottom: "1px solid #f1f5f9" }}
                 >
                   <span
                     className="font-bold text-[12px]"
-                    style={{ color: "#e2e8f0" }}
+                    style={{ color: "#1e293b" }}
                   >
                     {kpi.kpi}
                   </span>
                 </td>
                 <td
                   className="px-4 py-3 text-right"
-                  style={{ borderBottom: "1px solid #111e33" }}
+                  style={{ borderBottom: "1px solid #f1f5f9" }}
                 >
                   <span
                     className="font-mono text-[12px]"
@@ -191,17 +191,17 @@ export function CEOView({
                 </td>
                 <td
                   className="px-4 py-3 text-right"
-                  style={{ borderBottom: "1px solid #111e33" }}
+                  style={{ borderBottom: "1px solid #f1f5f9" }}
                 >
                   <span
                     className="font-black font-mono text-[13px]"
                     style={{
                       color:
                         kpi.status === "green"
-                          ? "#22c55e"
+                          ? "#16a34a"
                           : kpi.status === "yellow"
-                            ? "#f59e0b"
-                            : "#ef4444",
+                            ? "#d97706"
+                            : "#dc2626",
                     }}
                   >
                     {kpi.actual}
@@ -209,7 +209,7 @@ export function CEOView({
                 </td>
                 <td
                   className="px-4 py-3"
-                  style={{ borderBottom: "1px solid #111e33" }}
+                  style={{ borderBottom: "1px solid #f1f5f9" }}
                 >
                   <StatusIcon status={kpi.status} />
                 </td>

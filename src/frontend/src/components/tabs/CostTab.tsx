@@ -21,6 +21,7 @@ import {
   YAxis,
 } from "recharts";
 import type { OEEData, Press } from "../../backend.d";
+import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -28,6 +29,9 @@ interface CostTabProps {
   presses: Press[];
   oeeData: Record<string, OEEData[]>;
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
+  kpis?: { totalEnergy: number; totalOutput: number; [key: string]: number };
 }
 
 const SUB_TABS = ["Cost Overview", "Energy Analysis", "Labour & Revenue"];
@@ -78,7 +82,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function CostTab({ presses, oeeData, isLoading }: CostTabProps) {
+export function CostTab({
+  presses,
+  oeeData,
+  isLoading,
+  filterBadge,
+  mockPresses: _mockPresses = [],
+  kpis: _kpis,
+}: CostTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [period, setPeriod] = useState<Period>("Today");
 
@@ -170,6 +181,26 @@ export function CostTab({ presses, oeeData, isLoading }: CostTabProps) {
   return (
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
+      {filterBadge && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
       <div className="p-4 space-y-4">
         {/* Cost Overview */}
         {subTab === "Cost Overview" && (
@@ -323,9 +354,9 @@ export function CostTab({ presses, oeeData, isLoading }: CostTabProps) {
                   onClick={() => setPeriod(p)}
                   className="px-3 py-1 text-[10px] font-semibold rounded border transition-colors"
                   style={{
-                    background: period === p ? "#0a1628" : "transparent",
-                    borderColor: period === p ? "#06b6d4" : "#162030",
-                    color: period === p ? "#67e8f9" : "#475569",
+                    background: period === p ? "#ecfeff" : "transparent",
+                    borderColor: period === p ? "#06b6d4" : "#e2e8f0",
+                    color: period === p ? "#0e7490" : "#64748b",
                   }}
                 >
                   {p}

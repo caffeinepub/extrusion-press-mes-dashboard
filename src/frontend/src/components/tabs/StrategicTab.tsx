@@ -19,6 +19,7 @@ import type {
   ProductionMetrics,
 } from "../../backend.d";
 import { OrderStatus } from "../../backend.d";
+import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -29,6 +30,14 @@ interface StrategicTabProps {
   productionData: Record<string, ProductionMetrics[]>;
   orders: Order[];
   isLoading: boolean;
+  filterBadge?: string;
+  strategicKPIs?: Array<{
+    kpi: string;
+    target: string;
+    actual: string;
+    status: "green" | "yellow" | "red";
+  }>;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["KPI Summary", "Trend Analysis", "Plant Scorecard"];
@@ -102,6 +111,9 @@ export function StrategicTab({
   productionData,
   orders,
   isLoading,
+  filterBadge,
+  strategicKPIs: _strategicKPIs,
+  mockPresses: _mockPresses = [],
 }: StrategicTabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
 
@@ -229,6 +241,26 @@ export function StrategicTab({
   return (
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
+      {filterBadge && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
       <div className="p-4 space-y-4">
         {/* KPI Summary */}
         {subTab === "KPI Summary" && (

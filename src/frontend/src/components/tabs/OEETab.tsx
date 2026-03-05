@@ -26,6 +26,7 @@ import {
   YAxis,
 } from "recharts";
 import type { DowntimeEvent, OEEData, Press } from "../../backend.d";
+import type { PressData } from "../../mockData";
 import { formatDowntimeCategory, getLatest } from "../../utils/mes";
 import { SubTabBar } from "../ui/SubTabBar";
 
@@ -34,6 +35,8 @@ interface OEETabProps {
   oeeData: Record<string, OEEData[]>;
   downtimeEvents: DowntimeEvent[];
   isLoading: boolean;
+  filterBadge?: string;
+  mockPresses?: PressData[];
 }
 
 const SUB_TABS = ["Availability", "Performance", "Quality", "Loss Analysis"];
@@ -91,7 +94,7 @@ function OEEGauge({ press, oee }: { press: Press; oee: OEEData | null }) {
             barSize={8}
             startAngle={180}
             endAngle={0}
-            data={[{ value: 100, fill: "#1e293b" }, ...data]}
+            data={[{ value: 100, fill: "#f1f5f9" }, ...data]}
           >
             <RadialBar dataKey="value" cornerRadius={4} background={false} />
           </RadialBarChart>
@@ -132,6 +135,8 @@ export function OEETab({
   oeeData,
   downtimeEvents,
   isLoading,
+  filterBadge,
+  mockPresses: _mockPresses = [],
 }: OEETabProps) {
   const [subTab, setSubTab] = useState(SUB_TABS[0]);
   const [highlightedPress, setHighlightedPress] = useState<string | null>(null);
@@ -247,6 +252,26 @@ export function OEETab({
   return (
     <div>
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
+      {filterBadge && (
+        <div
+          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          style={{ background: "#f8fafc" }}
+        >
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Filter:
+          </span>
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded border"
+            style={{
+              background: "#eff6ff",
+              color: "#1d4ed8",
+              borderColor: "#bfdbfe",
+            }}
+          >
+            {filterBadge}
+          </span>
+        </div>
+      )}
       <div className="p-4 space-y-4">
         {/* Availability */}
         {subTab === "Availability" && (
@@ -486,7 +511,7 @@ export function OEETab({
                             fill={
                               highlightedPressName &&
                               e.name !== highlightedPressName
-                                ? "#1e293b"
+                                ? "#e2e8f0"
                                 : CHART_COLORS.amber
                             }
                           />
@@ -504,7 +529,7 @@ export function OEETab({
                             fill={
                               highlightedPressName &&
                               e.name !== highlightedPressName
-                                ? "#1e293b"
+                                ? "#e2e8f0"
                                 : CHART_COLORS.green
                             }
                           />
@@ -522,7 +547,7 @@ export function OEETab({
                             fill={
                               highlightedPressName &&
                               e.name !== highlightedPressName
-                                ? "#1e293b"
+                                ? "#e2e8f0"
                                 : CHART_COLORS.cyan
                             }
                           />
