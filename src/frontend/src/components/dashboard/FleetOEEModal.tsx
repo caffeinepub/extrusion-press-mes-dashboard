@@ -69,11 +69,11 @@ function buildPressData(fleetOEE: number): PressOEERow[] {
     pressName: string;
     status: PressOEERow["status"];
   }> = [
-    { pressId: "P3300", pressName: "Titan", status: "Running" },
-    { pressId: "P2500", pressName: "Atlas", status: "Breakdown" },
-    { pressId: "P1800", pressName: "Vulcan", status: "Running" },
-    { pressId: "P1460", pressName: "Hermes", status: "Running" },
-    { pressId: "P1100", pressName: "Swift", status: "Running" },
+    { pressId: "P3300", pressName: "P3300", status: "Running" },
+    { pressId: "P2500", pressName: "P2500", status: "Breakdown" },
+    { pressId: "P1800", pressName: "P1800", status: "Running" },
+    { pressId: "P1460", pressName: "P1460", status: "Running" },
+    { pressId: "P1100", pressName: "P1100", status: "Running" },
   ];
 
   return presses.map((p, i) => ({

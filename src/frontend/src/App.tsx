@@ -22,7 +22,6 @@ import { WIPAgingDonut } from "./components/dashboard/TopTablesAndWIP";
 import { TotalBacklogModal } from "./components/dashboard/TotalBacklogModal";
 import { TotalDelayModal } from "./components/dashboard/TotalDelayModal";
 import { TotalEnergyModal } from "./components/dashboard/TotalEnergyModal";
-import { TotalFGSModal } from "./components/dashboard/TotalFGSModal";
 import { TotalInputModal } from "./components/dashboard/TotalInputModal";
 import { TotalOutputModal } from "./components/dashboard/TotalOutputModal";
 import { TotalRecoveryModal } from "./components/dashboard/TotalRecoveryModal";
@@ -35,7 +34,6 @@ import { ContactTimeTab } from "./components/tabs/ContactTimeTab";
 import { DelayDowntimeTab } from "./components/tabs/DelayDowntimeTab";
 import { DieLoadUnloadTab } from "./components/tabs/DieLoadUnloadTab";
 import { EnergyTab } from "./components/tabs/EnergyTab";
-import { FGSStockTab } from "./components/tabs/FGSStockTab";
 import { FleetOEETab } from "./components/tabs/FleetOEETab";
 import { GasTab } from "./components/tabs/GasTab";
 import { OEETab } from "./components/tabs/OEETab";
@@ -83,7 +81,6 @@ type ManagementTab =
   | "Total Output"
   | "Total Scrap"
   | "Recovery"
-  | "FGS Stock"
   | "WIP Stock"
   | "Contact Time"
   | "Delay & Downtime"
@@ -104,7 +101,6 @@ const MANAGEMENT_TABS: ManagementTab[] = [
   "Total Output",
   "Total Scrap",
   "Recovery",
-  "FGS Stock",
   "WIP Stock",
   "Contact Time",
   "Delay & Downtime",
@@ -131,7 +127,6 @@ function AppInner() {
   const [showTotalOutputModal, setShowTotalOutputModal] = useState(false);
   const [showTotalScrapModal, setShowTotalScrapModal] = useState(false);
   const [showTotalRecoveryModal, setShowTotalRecoveryModal] = useState(false);
-  const [showTotalFGSModal, setShowTotalFGSModal] = useState(false);
   const [showTotalWIPModal, setShowTotalWIPModal] = useState(false);
   const [showContactTimeModal, setShowContactTimeModal] = useState(false);
   const [showTotalDelayModal, setShowTotalDelayModal] = useState(false);
@@ -303,7 +298,6 @@ function AppInner() {
         onTotalOutputClick={() => setShowTotalOutputModal(true)}
         onTotalScrapClick={() => setShowTotalScrapModal(true)}
         onTotalRecoveryClick={() => setShowTotalRecoveryModal(true)}
-        onTotalFGSClick={() => setShowTotalFGSModal(true)}
         onTotalWIPClick={() => setShowTotalWIPModal(true)}
         onContactTimeClick={() => setShowContactTimeModal(true)}
         onTotalDelayClick={() => setShowTotalDelayModal(true)}
@@ -334,11 +328,6 @@ function AppInner() {
         open={showTotalRecoveryModal}
         onClose={() => setShowTotalRecoveryModal(false)}
         totalRecovery={kpis.totalRecovery}
-      />
-      <TotalFGSModal
-        open={showTotalFGSModal}
-        onClose={() => setShowTotalFGSModal(false)}
-        totalFGS={kpis.totalFGS}
       />
       <TotalWIPModal
         open={showTotalWIPModal}
@@ -583,15 +572,6 @@ function AppInner() {
                 presses={presses}
                 filterBadge={filterBadge}
                 totalRecovery={kpis.totalRecovery}
-              />
-            )}
-
-            {activeTab === "FGS Stock" && (
-              <FGSStockTab
-                key={filterBadge}
-                presses={presses}
-                filterBadge={filterBadge}
-                totalFGS={kpis.totalFGS}
               />
             )}
 

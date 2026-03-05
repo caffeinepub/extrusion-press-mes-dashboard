@@ -73,21 +73,58 @@ function RecoveryBadge({ recovery }: { recovery: number }) {
   );
 }
 
-// ─── Scrap Badge ──────────────────────────────────────────────────────────────
-function ScrapBadge({ scrap }: { scrap: number }) {
-  const color = scrap > 2 ? "#dc2626" : scrap >= 1.5 ? "#d97706" : "#16a34a";
-  const bg = scrap > 2 ? "#fee2e2" : scrap >= 1.5 ? "#fef3c7" : "#dcfce7";
+// ─── Input vs Output Bar ──────────────────────────────────────────────────────
+function InputVsOutput({
+  input,
+  output,
+}: {
+  input: number;
+  output: number;
+}) {
+  const ratio = input > 0 ? Math.min((output / input) * 100, 100) : 0;
+  const color = ratio >= 90 ? "#16a34a" : ratio >= 75 ? "#d97706" : "#dc2626";
+  const bgTrack = ratio >= 90 ? "#dcfce7" : ratio >= 75 ? "#fef3c7" : "#fee2e2";
+
   return (
-    <span
-      className="inline-block px-1.5 py-0.5 rounded font-semibold tabular-nums text-[11px]"
-      style={{
-        color,
-        background: bg,
-        fontFamily: '"JetBrains Mono", monospace',
-      }}
-    >
-      {scrap.toFixed(1)}%
-    </span>
+    <div className="flex flex-col gap-0.5 min-w-[90px]">
+      <div className="flex items-center justify-between gap-1">
+        <span
+          className="text-[9px] font-bold"
+          style={{
+            color: "#16a34a",
+            fontFamily: '"JetBrains Mono", monospace',
+          }}
+        >
+          I: {input.toLocaleString()}
+        </span>
+        <span
+          className="text-[9px] font-bold"
+          style={{
+            color: "#3b82f6",
+            fontFamily: '"JetBrains Mono", monospace',
+          }}
+        >
+          O: {output.toLocaleString()}
+        </span>
+      </div>
+      <div
+        className="h-1.5 rounded-full overflow-hidden"
+        style={{ background: bgTrack }}
+      >
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${ratio}%`, background: color }}
+        />
+      </div>
+      <div className="text-right">
+        <span
+          className="text-[8px] font-bold tabular-nums"
+          style={{ color, fontFamily: '"JetBrains Mono", monospace' }}
+        >
+          {ratio.toFixed(0)}%
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -343,7 +380,7 @@ export function PressFleetTable({
 
       {/* ── Scrollable Table ── */}
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse" style={{ minWidth: 980 }}>
+        <table className="w-full border-collapse" style={{ minWidth: 1020 }}>
           {/* Column Group Headers */}
           <thead>
             <tr>
@@ -362,8 +399,8 @@ export function PressFleetTable({
               <GroupTH colSpan={3} color="#0f766e">
                 Performance
               </GroupTH>
-              <GroupTH colSpan={2} color="#b91c1c">
-                Quality
+              <GroupTH colSpan={1} color="#0891b2">
+                Throughput
               </GroupTH>
             </tr>
             {/* Sub-headers */}
@@ -381,8 +418,8 @@ export function PressFleetTable({
               {/* Performance group */}
               <TH right>OEE %</TH>
               <TH right>Recovery %</TH>
-              <TH right>Scrap %</TH>
-              {/* Quality group (merged into scrap — no extra cols needed) */}
+              {/* Throughput group */}
+              <TH center>Input vs Output</TH>
             </tr>
           </thead>
           <tbody>
@@ -534,9 +571,12 @@ export function PressFleetTable({
                     <RecoveryBadge recovery={p.recovery} />
                   </TD>
 
-                  {/* ── Scrap % ── */}
-                  <TD right>
-                    <ScrapBadge scrap={p.scrap} />
+                  {/* ── Input vs Output ── */}
+                  <TD center>
+                    <InputVsOutput
+                      input={p.kgPerHour}
+                      output={Math.round(p.kgPerHour * (p.recovery / 100))}
+                    />
                   </TD>
                 </tr>
               );
@@ -654,18 +694,26 @@ export function PressFleetTable({
                   %
                 </span>
               </td>
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+              <td className="px-2 py-1.5 text-center border-t-2 border-[#e2e8f0]">
                 <span
                   className="text-[9px] font-semibold tabular-nums"
                   style={{
-                    color: "#dc2626",
+                    color: "#0891b2",
                     fontFamily: '"JetBrains Mono", monospace',
                   }}
                 >
-                  {(
-                    presses.reduce((s, p) => s + p.scrap, 0) / presses.length
-                  ).toFixed(1)}
-                  %
+                  {presses
+                    .reduce((s, p) => s + p.kgPerHour, 0)
+                    .toLocaleString()}{" "}
+                  →{" "}
+                  {presses
+                    .reduce(
+                      (s, p) =>
+                        s + Math.round(p.kgPerHour * (p.recovery / 100)),
+                      0,
+                    )
+                    .toLocaleString()}{" "}
+                  kg/h
                 </span>
               </td>
             </tr>
@@ -705,7 +753,7 @@ export function PressFleetTable({
         <span className="text-[8px]" style={{ color: "#94a3b8" }}>
           · PP = Production Plan (Actual Shots / Planned Shots) · L = Die Load
           time · U = Die Unload time · Contact Time = billet contact duration
-          (sec)
+          (sec) · Input vs Output = Press Kg/H Input → Recovered Output (kg/h)
         </span>
       </div>
     </div>

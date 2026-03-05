@@ -54,7 +54,7 @@ const BASE_PRESSES: Array<{
 }> = [
   {
     pressId: "P3300",
-    pressName: "Titan",
+    pressName: "P3300",
     status: "Running",
     contactTime: 42,
     billetCount: 42,
@@ -63,7 +63,7 @@ const BASE_PRESSES: Array<{
   },
   {
     pressId: "P2500",
-    pressName: "Atlas",
+    pressName: "P2500",
     status: "Breakdown",
     contactTime: 0,
     billetCount: 8,
@@ -72,7 +72,7 @@ const BASE_PRESSES: Array<{
   },
   {
     pressId: "P1800",
-    pressName: "Vulcan",
+    pressName: "P1800",
     status: "Running",
     contactTime: 38,
     billetCount: 38,
@@ -81,7 +81,7 @@ const BASE_PRESSES: Array<{
   },
   {
     pressId: "P1460",
-    pressName: "Hermes",
+    pressName: "P1460",
     status: "Running",
     contactTime: 35,
     billetCount: 36,
@@ -90,7 +90,7 @@ const BASE_PRESSES: Array<{
   },
   {
     pressId: "P1100",
-    pressName: "Swift",
+    pressName: "P1100",
     status: "Running",
     contactTime: 30,
     billetCount: 37,

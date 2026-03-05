@@ -108,17 +108,15 @@ const PERIOD_MULTIPLIERS: Record<
     input: number;
     output: number;
     energy: number;
-    fgs: number;
     wip: number;
     backlog: number;
   }
 > = {
-  Today: { input: 1, output: 1, energy: 1, fgs: 1, wip: 1, backlog: 1 },
+  Today: { input: 1, output: 1, energy: 1, wip: 1, backlog: 1 },
   Week: {
     input: 6.8,
     output: 6.5,
     energy: 6.9,
-    fgs: 6.2,
     wip: 1.4,
     backlog: 0.95,
   },
@@ -126,7 +124,6 @@ const PERIOD_MULTIPLIERS: Record<
     input: 27.5,
     output: 26.8,
     energy: 28.1,
-    fgs: 25.4,
     wip: 1.8,
     backlog: 0.9,
   },
@@ -137,7 +134,7 @@ const PERIOD_MULTIPLIERS: Record<
 const BASE_PRESSES = [
   {
     id: "P3300",
-    name: "Titan",
+    name: "P3300",
     tonnage: 3300,
     oee: 88.9,
     plan: 20,
@@ -164,7 +161,7 @@ const BASE_PRESSES = [
   },
   {
     id: "P2500",
-    name: "Atlas",
+    name: "P2500",
     tonnage: 2500,
     oee: 51.0,
     plan: 20,
@@ -191,7 +188,7 @@ const BASE_PRESSES = [
   },
   {
     id: "P1800",
-    name: "Vulcan",
+    name: "P1800",
     tonnage: 1800,
     oee: 80.9,
     plan: 20,
@@ -218,7 +215,7 @@ const BASE_PRESSES = [
   },
   {
     id: "P1460",
-    name: "Hermes",
+    name: "P1460",
     tonnage: 1460,
     oee: 85.6,
     plan: 20,
@@ -245,7 +242,7 @@ const BASE_PRESSES = [
   },
   {
     id: "P1100",
-    name: "Swift",
+    name: "P1100",
     tonnage: 1100,
     oee: 94.2,
     plan: 20,
@@ -398,9 +395,6 @@ export function getFilteredMockData(
     ),
     totalScrap: Number.parseFloat((1.6 * seed.scrapMultiplier).toFixed(2)),
     totalRecovery: avgRecovery,
-    totalFGS: Number.parseFloat(
-      (450.0 * seed.oeeMultiplier * pm.fgs).toFixed(2),
-    ),
     totalWIP: Number.parseFloat((125.0 * pm.wip).toFixed(2)),
     contactTime: avgContactTime,
     totalDelay: Number.parseFloat((334 * seed.downtimeMultiplier).toFixed(0)),
@@ -687,19 +681,19 @@ export const wipAgingData = _initial.wipAgingData;
 export const strategicKPIs = _initial.strategicKPIs;
 
 export const oeeQualityData = [
-  { press: "P3300 (Titan)", oee: 88.9, quality: 95.2 },
-  { press: "P2500 (Atlas)", oee: 51.0, quality: 72.1 },
-  { press: "P1800 (Vulcan)", oee: 80.9, quality: 91.5 },
-  { press: "P1460 (Hermes)", oee: 85.6, quality: 93.8 },
-  { press: "P1100 (Swift)", oee: 94.2, quality: 97.1 },
+  { press: "P3300", oee: 88.9, quality: 95.2 },
+  { press: "P2500", oee: 51.0, quality: 72.1 },
+  { press: "P1800", oee: 80.9, quality: 91.5 },
+  { press: "P1460", oee: 85.6, quality: 93.8 },
+  { press: "P1100", oee: 94.2, quality: 97.1 },
 ];
 
 export const outputRatesData = [
-  { press: "P3300 (Titan)", dieTarget: 2400, pressActual: 2100 },
-  { press: "P2500 (Atlas)", dieTarget: 2000, pressActual: 800 },
-  { press: "P1800 (Vulcan)", dieTarget: 2200, pressActual: 1900 },
-  { press: "P1460 (Hermes)", dieTarget: 1800, pressActual: 1600 },
-  { press: "P1100 (Swift)", dieTarget: 2600, pressActual: 2500 },
+  { press: "P3300", dieTarget: 2400, pressActual: 2100 },
+  { press: "P2500", dieTarget: 2000, pressActual: 800 },
+  { press: "P1800", dieTarget: 2200, pressActual: 1900 },
+  { press: "P1460", dieTarget: 1800, pressActual: 1600 },
+  { press: "P1100", dieTarget: 2600, pressActual: 2500 },
 ];
 
 export function applyLiveDelta(value: number, deltaPercent = 0.03): number {
@@ -726,7 +720,7 @@ import {
 export const MOCK_BACKEND_PRESSES: Press[] = [
   {
     id: "P3300",
-    name: "Titan",
+    name: "P3300",
     status: PressStatus.running,
     activeDie: "2003064",
     operatorName: "Raj Kumar",
@@ -737,7 +731,7 @@ export const MOCK_BACKEND_PRESSES: Press[] = [
   },
   {
     id: "P2500",
-    name: "Atlas",
+    name: "P2500",
     status: PressStatus.breakdown,
     activeDie: "2001005",
     operatorName: "Suresh M",
@@ -748,7 +742,7 @@ export const MOCK_BACKEND_PRESSES: Press[] = [
   },
   {
     id: "P1800",
-    name: "Vulcan",
+    name: "P1800",
     status: PressStatus.running,
     activeDie: "2002010",
     operatorName: "Amit Patel",
@@ -759,7 +753,7 @@ export const MOCK_BACKEND_PRESSES: Press[] = [
   },
   {
     id: "P1460",
-    name: "Hermes",
+    name: "P1460",
     status: PressStatus.running,
     activeDie: "2004056",
     operatorName: "Priya S",
@@ -770,7 +764,7 @@ export const MOCK_BACKEND_PRESSES: Press[] = [
   },
   {
     id: "P1100",
-    name: "Swift",
+    name: "P1100",
     status: PressStatus.running,
     activeDie: "2000061",
     operatorName: "Vikas N",

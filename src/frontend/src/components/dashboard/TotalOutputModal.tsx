@@ -53,31 +53,31 @@ function buildPressData(totalOutput: number): PressOutputRow[] {
   }> = [
     {
       pressId: "P3300",
-      pressName: "Titan",
+      pressName: "P3300",
       status: "Running",
       recoveryPct: 96.8,
     },
     {
       pressId: "P2500",
-      pressName: "Atlas",
+      pressName: "P2500",
       status: "Breakdown",
       recoveryPct: 85.2,
     },
     {
       pressId: "P1800",
-      pressName: "Vulcan",
+      pressName: "P1800",
       status: "Running",
       recoveryPct: 97.1,
     },
     {
       pressId: "P1460",
-      pressName: "Hermes",
+      pressName: "P1460",
       status: "Running",
       recoveryPct: 96.4,
     },
     {
       pressId: "P1100",
-      pressName: "Swift",
+      pressName: "P1100",
       status: "Running",
       recoveryPct: 97.3,
     },

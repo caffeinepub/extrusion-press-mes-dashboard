@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   BarChart2,
   Battery,
-  Box,
   Clock,
   Flame,
   Gauge,
@@ -32,7 +31,6 @@ interface KPIRibbonProps {
     totalOutput: number;
     totalScrap: number;
     totalRecovery: number;
-    totalFGS: number;
     totalWIP: number;
     contactTime: number;
     totalDelay: number;
@@ -48,7 +46,6 @@ interface KPIRibbonProps {
   onTotalOutputClick?: () => void;
   onTotalScrapClick?: () => void;
   onTotalRecoveryClick?: () => void;
-  onTotalFGSClick?: () => void;
   onTotalWIPClick?: () => void;
   onContactTimeClick?: () => void;
   onTotalDelayClick?: () => void;
@@ -87,7 +84,6 @@ export function KPIRibbon({
   onTotalOutputClick,
   onTotalScrapClick,
   onTotalRecoveryClick,
-  onTotalFGSClick,
   onTotalWIPClick,
   onContactTimeClick,
   onTotalDelayClick,
@@ -141,17 +137,6 @@ export function KPIRibbon({
       borderColor: "#22c55e",
       onClick: onTotalRecoveryClick,
       ocid: "kpi.total_recovery.button",
-    },
-    {
-      label: "FGS Stock",
-      value: data.totalFGS.toFixed(1),
-      unit: "MT",
-      icon: <Box size={14} />,
-      color: "#0f766e",
-      bgColor: "#f0fdfa",
-      borderColor: "#14b8a6",
-      onClick: onTotalFGSClick,
-      ocid: "kpi.fgs_stock.button",
     },
     {
       label: "WIP Stock",

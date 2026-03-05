@@ -25,7 +25,7 @@ interface TopNavBarProps {
 const AI_INSIGHTS = [
   {
     type: "critical",
-    text: "P2500 Atlas has been in Breakdown for 180+ mins — longest downtime event this shift.",
+    text: "P2500 has been in Breakdown for 180+ mins — longest downtime event this shift.",
   },
   {
     type: "warning",
@@ -33,11 +33,11 @@ const AI_INSIGHTS = [
   },
   {
     type: "success",
-    text: "P3300 Titan is top performer at 88.9% OEE, running at 2,100 kg/hr — 12% above fleet average.",
+    text: "P3300 is top performer at 88.9% OEE, running at 2,100 kg/hr — 12% above fleet average.",
   },
   {
     type: "warning",
-    text: "Scrap rate on alloy 6082 is elevated (2.3%) — correlates with Atlas breakdown episodes.",
+    text: "Scrap rate on alloy 6082 is elevated (2.3%) — correlates with P2500 breakdown episodes.",
   },
   {
     type: "info",
@@ -45,7 +45,7 @@ const AI_INSIGHTS = [
   },
   {
     type: "info",
-    text: "Die #2001005 (Atlas) has exceeded 80% of shot life and is due for maintenance inspection.",
+    text: "Die #2001005 (P2500) has exceeded 80% of shot life and is due for maintenance inspection.",
   },
 ];
 

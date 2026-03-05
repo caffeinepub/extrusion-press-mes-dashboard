@@ -27,22 +27,22 @@ const SHIFT_DATA = [
     shift: "Shift A",
     planned: 555,
     actual: 520,
-    bestPress: "P1100 Swift",
-    worstPress: "P2500 Atlas",
+    bestPress: "P1100",
+    worstPress: "P2500",
   },
   {
     shift: "Shift B",
     planned: 555,
     actual: 468,
-    bestPress: "P3300 Titan",
-    worstPress: "P2500 Atlas",
+    bestPress: "P3300",
+    worstPress: "P2500",
   },
   {
     shift: "Shift C",
     planned: 555,
     actual: 425,
-    bestPress: "P1100 Swift",
-    worstPress: "P2500 Atlas",
+    bestPress: "P1100",
+    worstPress: "P2500",
   },
 ];
 

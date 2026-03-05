@@ -64,11 +64,11 @@ function buildPressData(totalGas: number): PressGasRow[] {
     pressName: string;
     status: PressGasRow["status"];
   }> = [
-    { pressId: "P3300", pressName: "Titan", status: PRESS_STATUSES[0] },
-    { pressId: "P2500", pressName: "Atlas", status: PRESS_STATUSES[1] },
-    { pressId: "P1800", pressName: "Vulcan", status: PRESS_STATUSES[2] },
-    { pressId: "P1460", pressName: "Hermes", status: PRESS_STATUSES[3] },
-    { pressId: "P1100", pressName: "Swift", status: PRESS_STATUSES[4] },
+    { pressId: "P3300", pressName: "P3300", status: PRESS_STATUSES[0] },
+    { pressId: "P2500", pressName: "P2500", status: PRESS_STATUSES[1] },
+    { pressId: "P1800", pressName: "P1800", status: PRESS_STATUSES[2] },
+    { pressId: "P1460", pressName: "P1460", status: PRESS_STATUSES[3] },
+    { pressId: "P1100", pressName: "P1100", status: PRESS_STATUSES[4] },
   ];
 
   return presses.map((p, i) => {
