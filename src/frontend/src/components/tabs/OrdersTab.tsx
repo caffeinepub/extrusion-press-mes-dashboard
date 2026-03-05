@@ -47,8 +47,24 @@ type StatusFilter = "All" | "open" | "inProgress" | "completed" | "delayed";
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="mes-card p-2 text-xs shadow-lg">
-        <p className="font-semibold text-foreground mb-1">{label}</p>
+      <div
+        style={{
+          background: "#1e293b",
+          border: "1px solid #334155",
+          borderRadius: "6px",
+          padding: "8px 12px",
+        }}
+      >
+        <p
+          style={{
+            color: "#f1f5f9",
+            fontSize: "11px",
+            fontWeight: 600,
+            marginBottom: "4px",
+          }}
+        >
+          {label}
+        </p>
         {payload.map((p: any) => (
           <div key={p.name} style={{ color: p.fill }}>
             {p.name}:{" "}
@@ -68,18 +84,18 @@ function ExpandableOrderRow({ order }: { order: Order }) {
   return (
     <>
       <TableRow
-        className="border-border hover:bg-muted/20 cursor-pointer"
+        className="cursor-pointer hover:bg-[#f8fafc]"
         onClick={() => setExpanded((p) => !p)}
       >
         <TableCell className="text-xs">
-          <span className="text-muted-foreground">
+          <span className="text-[#64748b]">
             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           </span>
         </TableCell>
-        <TableCell className="text-xs font-mono font-semibold text-chart-2">
+        <TableCell className="text-xs font-mono font-semibold text-[#06b6d4]">
           {order.workOrderNo}
         </TableCell>
-        <TableCell className="text-xs text-foreground truncate max-w-[120px]">
+        <TableCell className="text-xs text-[#1e293b] truncate max-w-[120px]">
           {order.customerName}
         </TableCell>
         <TableCell className="text-xs font-mono">{order.alloyGrade}</TableCell>
@@ -90,7 +106,7 @@ function ExpandableOrderRow({ order }: { order: Order }) {
         <TableCell className="min-w-[120px]">
           <div className="flex items-center gap-2">
             <Progress value={pct} className="h-1.5 flex-1" />
-            <span className="text-xs font-mono text-muted-foreground w-10 text-right">
+            <span className="text-xs font-mono text-[#64748b] w-10 text-right">
               {pct.toFixed(0)}%
             </span>
           </div>
@@ -103,65 +119,65 @@ function ExpandableOrderRow({ order }: { order: Order }) {
             {order.status}
           </Badge>
         </TableCell>
-        <TableCell className="text-xs font-mono text-muted-foreground">
+        <TableCell className="text-xs font-mono text-[#64748b]">
           {formatDate(order.dueDate)}
         </TableCell>
       </TableRow>
       {expanded && (
-        <TableRow className="border-border">
+        <TableRow style={{ borderColor: "#e2e8f0" }}>
           <TableCell colSpan={9} className="p-0">
             <div className="px-6 py-4 bg-blue-50 border-t border-border/40">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3">
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Alloy Grade
                   </div>
-                  <div className="text-xs font-mono text-chart-2">
+                  <div className="text-xs font-mono text-[#06b6d4]">
                     {order.alloyGrade}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Die No
                   </div>
-                  <div className="text-xs font-mono text-foreground">
+                  <div className="text-xs font-mono text-[#1e293b]">
                     {order.dieNo}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Plant
                   </div>
-                  <div className="text-xs font-mono text-foreground">
+                  <div className="text-xs font-mono text-[#1e293b]">
                     {order.plantId || "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Due Date
                   </div>
-                  <div className="text-xs font-mono text-foreground">
+                  <div className="text-xs font-mono text-[#1e293b]">
                     {formatDate(order.dueDate)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Total MT
                   </div>
-                  <div className="text-xs font-mono text-chart-1 font-bold">
+                  <div className="text-xs font-mono text-[#3b82f6] font-bold">
                     {order.totalMT.toFixed(2)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Completed MT
                   </div>
-                  <div className="text-xs font-mono text-chart-3 font-bold">
+                  <div className="text-xs font-mono text-[#10b981] font-bold">
                     {order.completedMT.toFixed(2)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Remaining MT
                   </div>
                   <div className="text-xs font-mono text-yellow-400 font-bold">
@@ -169,22 +185,22 @@ function ExpandableOrderRow({ order }: { order: Order }) {
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">
+                  <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-0.5">
                     Customer
                   </div>
-                  <div className="text-xs text-foreground">
+                  <div className="text-xs text-[#1e293b]">
                     {order.customerName}
                   </div>
                 </div>
               </div>
               <div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mb-1">
                   Completion Progress
                 </div>
                 <div className="flex items-center gap-3">
                   <Progress value={pct} className="h-3 flex-1" />
                   <span
-                    className={`text-sm font-mono font-bold ${pct >= 100 ? "text-chart-3" : pct >= 50 ? "text-chart-2" : "text-yellow-400"}`}
+                    className={`text-sm font-mono font-bold ${pct >= 100 ? "text-[#10b981]" : pct >= 50 ? "text-[#06b6d4]" : "text-yellow-400"}`}
                   >
                     {pct.toFixed(1)}%
                   </span>
@@ -212,8 +228,8 @@ export function OrdersTab({
       <div>
         <SubTabBar tabs={SUB_TABS} active={SUB_TABS[0]} onChange={() => {}} />
         <div className="p-4 space-y-4">
-          <Skeleton className="h-24 bg-muted" />
-          <Skeleton className="h-64 bg-muted" />
+          <Skeleton className="h-24 bg-[#f8fafc]" />
+          <Skeleton className="h-64 bg-[#f8fafc]" />
         </div>
       </div>
     );
@@ -278,10 +294,10 @@ export function OrdersTab({
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
       {filterBadge && (
         <div
-          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          className="flex items-center gap-3 px-4 py-2 border-b border-[#e2e8f0]"
           style={{ background: "#f8fafc" }}
         >
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
             Filter:
           </span>
           <span
@@ -301,45 +317,59 @@ export function OrdersTab({
         {subTab === "Order Execution" && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-2">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
+                <div className="font-mono text-2xl font-bold text-[#06b6d4]">
                   {openOrders.length + inProgressOrders.length}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Open Orders
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-3">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
+                <div className="font-mono text-2xl font-bold text-[#10b981]">
                   {completedToday.length}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Completed Today
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <div
-                  className={`font-mono text-2xl font-bold ${delayedOrders.length > 0 ? "text-red-400" : "text-chart-3"}`}
+                  className={`font-mono text-2xl font-bold ${delayedOrders.length > 0 ? "text-red-400" : "text-[#10b981]"}`}
                 >
                   {delayedOrders.length}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Delayed Orders
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <div
-                  className={`font-mono text-2xl font-bold ${onTimeDeliveryPct >= 95 ? "text-chart-3" : onTimeDeliveryPct >= 85 ? "text-yellow-400" : "text-red-400"}`}
+                  className={`font-mono text-2xl font-bold ${onTimeDeliveryPct >= 95 ? "text-[#10b981]" : onTimeDeliveryPct >= 85 ? "text-yellow-400" : "text-red-400"}`}
                 >
                   {onTimeDeliveryPct.toFixed(1)}%
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   On-Time Delivery
                 </div>
               </div>
             </div>
 
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <CardTitle className="text-sm">Orders Table</CardTitle>
@@ -348,10 +378,10 @@ export function OrdersTab({
                       value={statusFilter}
                       onValueChange={(v) => setStatusFilter(v as StatusFilter)}
                     >
-                      <SelectTrigger className="h-7 text-xs bg-secondary border-border w-36">
+                      <SelectTrigger className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-36">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover border-border">
+                      <SelectContent className="bg-white border-[#e2e8f0]">
                         <SelectItem value="All" className="text-xs">
                           All Status
                         </SelectItem>
@@ -369,9 +399,9 @@ export function OrdersTab({
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-[#64748b]">
                       Plan Achievement:{" "}
-                      <span className="font-mono text-chart-1 font-semibold">
+                      <span className="font-mono text-[#3b82f6] font-semibold">
                         {planAchievementPct.toFixed(1)}%
                       </span>
                     </div>
@@ -387,29 +417,29 @@ export function OrdersTab({
                   <Table>
                     <TableHeader>
                       <TableRow className="border-border hover:bg-transparent">
-                        <TableHead className="text-xs text-muted-foreground h-8 w-8" />
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8 w-8" />
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Work Order
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Customer
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Alloy
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Die
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead className="text-xs text-[#64748b] h-8 text-right">
                           Total MT
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Progress
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Status
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead className="text-xs text-[#64748b] h-8">
                           Due Date
                         </TableHead>
                       </TableRow>
@@ -419,7 +449,7 @@ export function OrdersTab({
                         <TableRow>
                           <TableCell
                             colSpan={9}
-                            className="text-center text-muted-foreground text-xs py-8"
+                            className="text-center text-[#64748b] text-xs py-8"
                           >
                             No orders found
                           </TableCell>
@@ -441,40 +471,51 @@ export function OrdersTab({
         {subTab === "Plan vs Actual" && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-              <div className="mes-card p-3 text-center">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <div
-                  className={`font-mono text-2xl font-bold ${planAchievementPct >= 90 ? "text-chart-3" : planAchievementPct >= 75 ? "text-yellow-400" : "text-red-400"}`}
+                  className={`font-mono text-2xl font-bold ${planAchievementPct >= 90 ? "text-[#10b981]" : planAchievementPct >= 75 ? "text-yellow-400" : "text-red-400"}`}
                 >
                   {planAchievementPct.toFixed(1)}%
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Plan Achievement
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-2">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
+                <div className="font-mono text-2xl font-bold text-[#06b6d4]">
                   {orders
                     .reduce((s, o) => s + (o.totalMT - o.completedMT), 0)
                     .toFixed(1)}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Pending MT
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <div
-                  className={`font-mono text-2xl font-bold ${delayedOrders.length > 0 ? "text-red-400" : "text-chart-3"}`}
+                  className={`font-mono text-2xl font-bold ${delayedOrders.length > 0 ? "text-red-400" : "text-[#10b981]"}`}
                 >
                   {delayedOrders.length}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Delayed Orders
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Pending MT by Work Order
@@ -482,7 +523,7 @@ export function OrdersTab({
                 </CardHeader>
                 <CardContent className="p-3">
                   {pendingData.length === 0 ? (
-                    <div className="flex items-center justify-center h-40 text-muted-foreground text-xs">
+                    <div className="flex items-center justify-center h-40 text-[#64748b] text-xs">
                       No open orders
                     </div>
                   ) : (
@@ -491,10 +532,7 @@ export function OrdersTab({
                         data={pendingData}
                         margin={{ top: 0, right: 8, left: -20, bottom: 30 }}
                       >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="oklch(0.28 0.015 240)"
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                         <XAxis
                           dataKey="name"
                           tick={{ fontSize: 9, fill: "oklch(0.55 0.01 240)" }}
@@ -525,7 +563,9 @@ export function OrdersTab({
               </Card>
 
               {/* Order Aging */}
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">Order Aging Summary</CardTitle>
                 </CardHeader>
@@ -535,7 +575,7 @@ export function OrdersTab({
                       {
                         label: "< 7 Days",
                         count: ageLt7,
-                        color: "text-chart-3",
+                        color: "text-[#10b981]",
                         bar: "#10b981",
                       },
                       {
@@ -560,7 +600,7 @@ export function OrdersTab({
                             {bucket.count} orders
                           </span>
                         </div>
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="h-2 bg-[#f8fafc] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
@@ -576,7 +616,7 @@ export function OrdersTab({
                     ))}
                   </div>
                   <div className="mt-4 pt-3 border-t border-border/40">
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-[10px] text-[#64748b]">
                       Plan Achievement Progress
                     </div>
                     <div className="flex items-center gap-2 mt-1">
@@ -585,7 +625,7 @@ export function OrdersTab({
                         className="h-2 flex-1"
                       />
                       <span
-                        className={`font-mono text-xs font-bold ${planAchievementPct >= 90 ? "text-chart-3" : "text-yellow-400"}`}
+                        className={`font-mono text-xs font-bold ${planAchievementPct >= 90 ? "text-[#10b981]" : "text-yellow-400"}`}
                       >
                         {planAchievementPct.toFixed(1)}%
                       </span>
@@ -599,7 +639,7 @@ export function OrdersTab({
 
         {/* Die Utilization */}
         {subTab === "Die Utilization" && (
-          <Card className="bg-card border-border">
+          <Card style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
             <CardHeader className="py-3 px-4">
               <CardTitle className="text-sm">Die Health Status</CardTitle>
             </CardHeader>
@@ -608,22 +648,22 @@ export function OrdersTab({
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableHead className="text-xs text-[#64748b] h-8">
                         Die No
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead className="text-xs text-[#64748b] h-8 text-right">
                         Shots Completed
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead className="text-xs text-[#64748b] h-8 text-right">
                         Shot Life
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead className="text-xs text-[#64748b] h-8 text-right">
                         Change Freq
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableHead className="text-xs text-[#64748b] h-8">
                         Shot Life %
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableHead className="text-xs text-[#64748b] h-8">
                         Maint Due
                       </TableHead>
                     </TableRow>
@@ -633,7 +673,7 @@ export function OrdersTab({
                       <TableRow>
                         <TableCell
                           colSpan={6}
-                          className="text-xs text-muted-foreground text-center py-4"
+                          className="text-xs text-[#64748b] text-center py-4"
                         >
                           All dies within service life
                         </TableCell>
@@ -649,7 +689,7 @@ export function OrdersTab({
                         return (
                           <TableRow
                             key={die.dieNo}
-                            className="border-border hover:bg-muted/20"
+                            className="border-border hover:bg-[#f8fafc]/20"
                           >
                             <TableCell className="text-xs font-mono font-semibold">
                               {die.dieNo}
@@ -660,7 +700,7 @@ export function OrdersTab({
                             <TableCell className="text-xs font-mono text-right">
                               {die.shotLife.toString()}
                             </TableCell>
-                            <TableCell className="text-xs font-mono text-right text-muted-foreground">
+                            <TableCell className="text-xs font-mono text-right text-[#64748b]">
                               {die.changeFrequency?.toString() ?? "—"}
                             </TableCell>
                             <TableCell>
@@ -670,7 +710,7 @@ export function OrdersTab({
                                   className="h-1.5 flex-1"
                                 />
                                 <span
-                                  className={`text-[10px] font-mono ${pct >= 100 ? "text-red-400" : pct >= 80 ? "text-yellow-400" : "text-chart-3"}`}
+                                  className={`text-[10px] font-mono ${pct >= 100 ? "text-red-400" : pct >= 80 ? "text-yellow-400" : "text-[#10b981]"}`}
                                 >
                                   {pct.toFixed(0)}%
                                 </span>

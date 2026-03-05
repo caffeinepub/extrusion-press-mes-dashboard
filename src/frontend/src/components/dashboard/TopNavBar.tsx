@@ -73,13 +73,14 @@ const TYPE_STYLES: Record<string, { bar: string; dot: string; label: string }> =
     },
   };
 
-const SHIFTS: Shift[] = ["A", "B", "C"];
+const SHIFTS: Shift[] = ["All", "A", "B", "C"];
 const PERIODS: Period[] = ["Today", "Week", "Month"];
 
 const SHIFT_COLORS: Record<
   Shift,
   { bg: string; text: string; border: string }
 > = {
+  All: { bg: "#f0fdf4", text: "#15803d", border: "#22c55e" },
   A: { bg: "#fef3c7", text: "#b45309", border: "#f59e0b" },
   B: { bg: "#dbeafe", text: "#1d4ed8", border: "#3b82f6" },
   C: { bg: "#f3e8ff", text: "#7c3aed", border: "#8b5cf6" },
@@ -239,7 +240,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
               }}
               title="Select Shift"
             >
-              SHIFT {shift}
+              {shift === "All" ? "ALL SHIFTS" : `SHIFT ${shift}`}
               <ChevronDown size={9} />
             </button>
             {showShiftMenu && (
@@ -271,7 +272,7 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                           border: `1px solid ${sc.border}`,
                         }}
                       />
-                      Shift {s}
+                      {s === "All" ? "All Shifts" : `Shift ${s}`}
                     </button>
                   );
                 })}
@@ -492,7 +493,8 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                     AI INSIGHT ENGINE
                   </div>
                   <div className="text-[9px]" style={{ color: "#7c3aed" }}>
-                    Shift {shift} · {period} · {new Date().toLocaleTimeString()}
+                    {shift === "All" ? "All Shifts" : `Shift ${shift}`} ·{" "}
+                    {period} · {new Date().toLocaleTimeString()}
                   </div>
                 </div>
               </div>

@@ -53,11 +53,36 @@ const CHART_COLORS = {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="mes-card p-2 text-xs shadow-lg">
-        <p className="font-semibold text-foreground mb-1">{label}</p>
+      <div
+        style={{
+          background: "#1e293b",
+          border: "1px solid #334155",
+          borderRadius: "6px",
+          padding: "8px 12px",
+        }}
+      >
+        <p
+          style={{
+            color: "#f1f5f9",
+            fontSize: "11px",
+            fontWeight: 600,
+            marginBottom: "4px",
+          }}
+        >
+          {label}
+        </p>
         {payload.map((p: any) => (
-          <div key={p.name} className="flex gap-2 items-center">
-            <span style={{ color: p.fill || p.stroke }} className="font-mono">
+          <div
+            key={p.name}
+            style={{ display: "flex", gap: "8px", alignItems: "center" }}
+          >
+            <span
+              style={{
+                color: p.fill || p.stroke,
+                fontSize: "11px",
+                fontFamily: "monospace",
+              }}
+            >
               {p.name}:{" "}
               {typeof p.value === "number" ? p.value.toFixed(1) : p.value}
             </span>
@@ -72,16 +97,29 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 function OEEGauge({ press, oee }: { press: Press; oee: OEEData | null }) {
   if (!oee) {
     return (
-      <div className="mes-card p-3 flex flex-col items-center justify-center h-36">
-        <span className="text-xs text-muted-foreground">{press.name}</span>
-        <span className="text-xs text-muted-foreground mt-1">No data</span>
+      <div
+        className="rounded-lg p-3 flex flex-col items-center justify-center h-36"
+        style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+      >
+        <span className="text-xs" style={{ color: "#64748b" }}>
+          {press.name}
+        </span>
+        <span className="text-xs mt-1" style={{ color: "#64748b" }}>
+          No data
+        </span>
       </div>
     );
   }
   const data = [{ name: "OEE", value: oee.oeePct, fill: CHART_COLORS.amber }];
   return (
-    <div className="mes-card p-3">
-      <div className="text-xs font-semibold text-center text-foreground mb-1">
+    <div
+      className="rounded-lg p-3"
+      style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+    >
+      <div
+        className="text-xs font-semibold text-center mb-1"
+        style={{ color: "#1e293b" }}
+      >
         {press.name}
       </div>
       <div className="relative h-24">
@@ -100,30 +138,50 @@ function OEEGauge({ press, oee }: { press: Press; oee: OEEData | null }) {
           </RadialBarChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-1">
-          <span className="font-mono text-xl font-bold text-amber-400 leading-none">
+          <span
+            className="font-mono text-xl font-bold leading-none"
+            style={{ color: "#d97706" }}
+          >
             {oee.oeePct.toFixed(1)}%
           </span>
-          <span className="text-[10px] text-muted-foreground">OEE</span>
+          <span className="text-[10px]" style={{ color: "#64748b" }}>
+            OEE
+          </span>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-1 mt-2">
         <div className="text-center">
-          <div className="font-mono text-xs font-bold text-chart-3">
+          <div
+            className="font-mono text-xs font-bold"
+            style={{ color: "#10b981" }}
+          >
             {oee.availabilityPct.toFixed(0)}%
           </div>
-          <div className="text-[10px] text-muted-foreground">Avail</div>
+          <div className="text-[10px]" style={{ color: "#64748b" }}>
+            Avail
+          </div>
         </div>
         <div className="text-center">
-          <div className="font-mono text-xs font-bold text-chart-2">
+          <div
+            className="font-mono text-xs font-bold"
+            style={{ color: "#06b6d4" }}
+          >
             {oee.performancePct.toFixed(0)}%
           </div>
-          <div className="text-[10px] text-muted-foreground">Perf</div>
+          <div className="text-[10px]" style={{ color: "#64748b" }}>
+            Perf
+          </div>
         </div>
         <div className="text-center">
-          <div className="font-mono text-xs font-bold text-chart-5">
+          <div
+            className="font-mono text-xs font-bold"
+            style={{ color: "#8b5cf6" }}
+          >
             {oee.qualityPct.toFixed(0)}%
           </div>
-          <div className="text-[10px] text-muted-foreground">Qual</div>
+          <div className="text-[10px]" style={{ color: "#64748b" }}>
+            Qual
+          </div>
         </div>
       </div>
     </div>
@@ -254,10 +312,10 @@ export function OEETab({
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
       {filterBadge && (
         <div
-          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          className="flex items-center gap-3 px-4 py-2 border-b border-[#e2e8f0]"
           style={{ background: "#f8fafc" }}
         >
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
             Filter:
           </span>
           <span
@@ -277,7 +335,9 @@ export function OEETab({
         {subTab === "Availability" && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Planned vs Actual Run Time (hrs)
@@ -289,10 +349,7 @@ export function OEETab({
                       data={timeBreakdownData}
                       margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -319,7 +376,9 @@ export function OEETab({
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Time Breakdown by Category (hrs)
@@ -331,10 +390,7 @@ export function OEETab({
                       data={timeBreakdownData}
                       margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -374,7 +430,9 @@ export function OEETab({
                 </CardContent>
               </Card>
             </div>
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Availability Detail Table
@@ -383,29 +441,53 @@ export function OEETab({
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                    <TableRow style={{ borderColor: "#e2e8f0" }}>
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Press
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Planned (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Actual (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Breakdown (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Setup (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Die Change (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Idle (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Availability%
                       </TableHead>
                     </TableRow>
@@ -418,7 +500,7 @@ export function OEETab({
                       return (
                         <TableRow
                           key={press.id}
-                          className="border-border hover:bg-muted/30"
+                          style={{ borderColor: "#f1f5f9" }}
                         >
                           <TableCell className="text-xs font-medium">
                             {press.name}
@@ -426,7 +508,7 @@ export function OEETab({
                           <TableCell className="text-xs font-mono text-right">
                             {latest?.plannedRunTime.toFixed(1) ?? "—"}
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-chart-3">
+                          <TableCell className="text-xs font-mono text-right text-[#10b981]">
                             {latest?.actualRunTime.toFixed(1) ?? "—"}
                           </TableCell>
                           <TableCell className="text-xs font-mono text-right text-red-400">
@@ -438,14 +520,14 @@ export function OEETab({
                           <TableCell className="text-xs font-mono text-right text-purple-400">
                             {latest?.dieChangeTime.toFixed(1) ?? "—"}
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-muted-foreground">
+                          <TableCell className="text-xs font-mono text-right text-[#64748b]">
                             {latest?.idleTime.toFixed(1) ?? "—"}
                           </TableCell>
                           <TableCell className="text-xs">
                             <div className="flex items-center gap-2">
                               <Progress value={avail} className="h-1.5 w-16" />
                               <span
-                                className={`font-mono text-xs ${avail >= 85 ? "text-chart-3" : avail >= 75 ? "text-yellow-400" : "text-red-400"}`}
+                                className={`font-mono text-xs ${avail >= 85 ? "text-[#10b981]" : avail >= 75 ? "text-yellow-400" : "text-red-400"}`}
                               >
                                 {avail.toFixed(1)}%
                               </span>
@@ -465,7 +547,9 @@ export function OEETab({
         {subTab === "Performance" && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     OEE Component Breakdown
@@ -485,10 +569,7 @@ export function OEETab({
                         }
                       }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -555,12 +636,14 @@ export function OEETab({
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  <p className="text-[10px] text-muted-foreground mt-1 text-center">
+                  <p className="text-[10px] text-[#64748b] mt-1 text-center">
                     Click a bar to highlight press in table below
                   </p>
                 </CardContent>
               </Card>
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Output vs Rated Capacity
@@ -584,7 +667,7 @@ export function OEETab({
                           <div className="flex justify-between text-xs mb-1">
                             <span className="font-medium">{press.name}</span>
                             <span
-                              className={`font-mono ${perf >= 85 ? "text-chart-3" : perf >= 70 ? "text-yellow-400" : "text-red-400"}`}
+                              className={`font-mono ${perf >= 85 ? "text-[#10b981]" : perf >= 70 ? "text-yellow-400" : "text-red-400"}`}
                             >
                               {perf.toFixed(1)}%
                             </span>
@@ -597,12 +680,14 @@ export function OEETab({
                 </CardContent>
               </Card>
             </div>
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Performance Detail Table{" "}
                   {highlightedPressName && (
-                    <span className="text-chart-2 font-normal">
+                    <span className="text-[#06b6d4] font-normal">
                       — Filtered: {highlightedPressName}
                     </span>
                   )}
@@ -611,20 +696,35 @@ export function OEETab({
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                    <TableRow style={{ borderColor: "#e2e8f0" }}>
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Press
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Actual OEE%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Availability%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Performance%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Quality%
                       </TableHead>
                     </TableRow>
@@ -639,23 +739,23 @@ export function OEETab({
                       .map((row) => (
                         <TableRow
                           key={row.name}
-                          className="border-border hover:bg-muted/30"
+                          style={{ borderColor: "#f1f5f9" }}
                         >
                           <TableCell className="text-xs font-medium">
                             {row.name}
                           </TableCell>
                           <TableCell
-                            className={`text-xs font-mono text-right font-bold ${row.oee >= 85 ? "text-chart-3" : row.oee >= 70 ? "text-yellow-400" : "text-red-400"}`}
+                            className={`text-xs font-mono text-right font-bold ${row.oee >= 85 ? "text-[#10b981]" : row.oee >= 70 ? "text-yellow-400" : "text-red-400"}`}
                           >
                             {row.oee.toFixed(1)}%
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-chart-3">
+                          <TableCell className="text-xs font-mono text-right text-[#10b981]">
                             {row.availability.toFixed(1)}%
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-chart-2">
+                          <TableCell className="text-xs font-mono text-right text-[#06b6d4]">
                             {row.performance.toFixed(1)}%
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-chart-5">
+                          <TableCell className="text-xs font-mono text-right text-[#8b5cf6]">
                             {row.quality.toFixed(1)}%
                           </TableCell>
                         </TableRow>
@@ -671,7 +771,9 @@ export function OEETab({
         {subTab === "Quality" && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Rejection % per Press
@@ -683,10 +785,7 @@ export function OEETab({
                       data={qualityData}
                       margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -718,7 +817,9 @@ export function OEETab({
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">Scrap Kg per Press</CardTitle>
                 </CardHeader>
@@ -728,10 +829,7 @@ export function OEETab({
                       data={qualityData}
                       margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="name"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -751,27 +849,44 @@ export function OEETab({
                 </CardContent>
               </Card>
             </div>
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">Quality Metrics Table</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                    <TableRow style={{ borderColor: "#e2e8f0" }}>
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Press
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Rejection%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Rework%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         First Pass Yield%
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Scrap Kg
                       </TableHead>
                     </TableRow>
@@ -780,13 +895,13 @@ export function OEETab({
                     {qualityData.map((row) => (
                       <TableRow
                         key={row.name}
-                        className="border-border hover:bg-muted/30"
+                        style={{ borderColor: "#f1f5f9" }}
                       >
                         <TableCell className="text-xs font-medium">
                           {row.name}
                         </TableCell>
                         <TableCell
-                          className={`text-xs font-mono text-right ${row.rejection > 2 ? "text-red-400" : row.rejection > 1 ? "text-yellow-400" : "text-chart-3"}`}
+                          className={`text-xs font-mono text-right ${row.rejection > 2 ? "text-red-400" : row.rejection > 1 ? "text-yellow-400" : "text-[#10b981]"}`}
                         >
                           {row.rejection.toFixed(2)}%
                         </TableCell>
@@ -794,7 +909,7 @@ export function OEETab({
                           {row.rework.toFixed(2)}%
                         </TableCell>
                         <TableCell
-                          className={`text-xs font-mono text-right ${row.fpYield >= 95 ? "text-chart-3" : row.fpYield >= 90 ? "text-yellow-400" : "text-red-400"}`}
+                          className={`text-xs font-mono text-right ${row.fpYield >= 95 ? "text-[#10b981]" : row.fpYield >= 90 ? "text-yellow-400" : "text-red-400"}`}
                         >
                           {row.fpYield.toFixed(1)}%
                         </TableCell>
@@ -814,7 +929,7 @@ export function OEETab({
         {subTab === "Loss Analysis" && (
           <>
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
+              <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-widest mb-3">
                 OEE Gauges — Press View
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -826,7 +941,9 @@ export function OEETab({
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Top 5 Downtime Reasons (Pareto)
@@ -834,7 +951,7 @@ export function OEETab({
                 </CardHeader>
                 <CardContent className="p-3">
                   {paretoData.length === 0 ? (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground text-xs">
+                    <div className="flex items-center justify-center h-48 text-[#64748b] text-xs">
                       No downtime data
                     </div>
                   ) : (
@@ -843,10 +960,7 @@ export function OEETab({
                         data={paretoData}
                         margin={{ top: 0, right: 8, left: -20, bottom: 30 }}
                       >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="oklch(0.28 0.015 240)"
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                         <XAxis
                           dataKey="name"
                           tick={{ fontSize: 9, fill: "oklch(0.55 0.01 240)" }}
@@ -891,7 +1005,9 @@ export function OEETab({
                   )}
                 </CardContent>
               </Card>
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
                   <CardTitle className="text-sm">
                     Loss Analysis by Category
@@ -899,7 +1015,7 @@ export function OEETab({
                 </CardHeader>
                 <CardContent className="p-3">
                   {downtimeChartData.length === 0 ? (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground text-xs">
+                    <div className="flex items-center justify-center h-48 text-[#64748b] text-xs">
                       No downtime data
                     </div>
                   ) : (

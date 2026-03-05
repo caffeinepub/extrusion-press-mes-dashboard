@@ -46,8 +46,24 @@ const SUB_TABS = ["Rejection Analysis", "Defect Tracking", "Root Cause"];
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="mes-card p-2 text-xs shadow-lg">
-        <p className="font-semibold text-foreground mb-1">{label}</p>
+      <div
+        style={{
+          background: "#1e293b",
+          border: "1px solid #334155",
+          borderRadius: "6px",
+          padding: "8px 12px",
+        }}
+      >
+        <p
+          style={{
+            color: "#f1f5f9",
+            fontSize: "11px",
+            fontWeight: 600,
+            marginBottom: "4px",
+          }}
+        >
+          {label}
+        </p>
         {payload.map((p: any) => (
           <div key={p.name} style={{ color: p.fill || p.stroke }}>
             {p.name}:{" "}
@@ -168,10 +184,10 @@ export function QualityTab({
       <SubTabBar tabs={SUB_TABS} active={subTab} onChange={setSubTab} />
       {filterBadge && subTab !== "Rejection Analysis" && (
         <div
-          className="flex items-center gap-3 px-4 py-2 border-b border-border/40"
+          className="flex items-center gap-3 px-4 py-2 border-b border-[#e2e8f0]"
           style={{ background: "#f8fafc" }}
         >
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
             Filter:
           </span>
           <span
@@ -190,7 +206,7 @@ export function QualityTab({
       {/* Filter bar (Rejection Analysis only) */}
       {subTab === "Rejection Analysis" && (
         <div
-          className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
+          className="flex items-center gap-3 px-4 py-2 border-b border-[#e2e8f0] flex-wrap"
           style={{ background: "#f8fafc" }}
         >
           {filterBadge && (
@@ -205,14 +221,14 @@ export function QualityTab({
               {filterBadge}
             </span>
           )}
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
             Alloy:
           </span>
           <Select value={alloyFilter} onValueChange={setAlloyFilter}>
-            <SelectTrigger className="h-7 text-xs bg-secondary border-border w-32">
+            <SelectTrigger className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-32">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-popover border-border">
+            <SelectContent className="bg-white border-[#e2e8f0]">
               <SelectItem value="All" className="text-xs">
                 All Alloys
               </SelectItem>
@@ -223,14 +239,14 @@ export function QualityTab({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+          <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
             Die:
           </span>
           <Select value={dieFilter} onValueChange={setDieFilter}>
-            <SelectTrigger className="h-7 text-xs bg-secondary border-border w-32">
+            <SelectTrigger className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-32">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-popover border-border">
+            <SelectContent className="bg-white border-[#e2e8f0]">
               <SelectItem value="All" className="text-xs">
                 All Dies
               </SelectItem>
@@ -241,7 +257,7 @@ export function QualityTab({
               ))}
             </SelectContent>
           </Select>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[10px] text-[#64748b]">
             {filteredRecords.length} records shown
           </span>
         </div>
@@ -251,7 +267,9 @@ export function QualityTab({
         {/* Rejection Analysis */}
         {subTab === "Rejection Analysis" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Rejection % by Alloy Grade
@@ -259,7 +277,7 @@ export function QualityTab({
               </CardHeader>
               <CardContent className="p-3">
                 {rejectionByAlloy.length === 0 ? (
-                  <div className="flex items-center justify-center h-40 text-muted-foreground text-xs">
+                  <div className="flex items-center justify-center h-40 text-[#64748b] text-xs">
                     No quality data
                   </div>
                 ) : (
@@ -268,10 +286,7 @@ export function QualityTab({
                       data={rejectionByAlloy}
                       margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="alloy"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -304,7 +319,9 @@ export function QualityTab({
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Rejection % by Die (Top 10)
@@ -312,7 +329,7 @@ export function QualityTab({
               </CardHeader>
               <CardContent className="p-3">
                 {rejectionByDie.length === 0 ? (
-                  <div className="flex items-center justify-center h-40 text-muted-foreground text-xs">
+                  <div className="flex items-center justify-center h-40 text-[#64748b] text-xs">
                     No quality data
                   </div>
                 ) : (
@@ -322,10 +339,7 @@ export function QualityTab({
                       margin={{ top: 0, right: 8, left: -20, bottom: 20 }}
                       layout="vertical"
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         type="number"
                         unit="%"
@@ -356,11 +370,23 @@ export function QualityTab({
         {subTab === "Defect Tracking" && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-red-400">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#fef2f2", border: "1px solid #ef444430" }}
+              >
+                <div
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color: "#dc2626",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
                   {totalSurfaceDefects.toLocaleString()}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   Surface Defects
                 </div>
               </div>
@@ -370,34 +396,48 @@ export function QualityTab({
                 >
                   {avgDimensionalFailure.toFixed(2)}%
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Dimensional Fail
                 </div>
               </div>
               <div className="mes-card p-3 text-center">
                 <div
-                  className={`font-mono text-2xl font-bold ${totalComplaints > 5 ? "text-red-400" : totalComplaints > 0 ? "text-yellow-400" : "text-chart-3"}`}
+                  className={`font-mono text-2xl font-bold ${totalComplaints > 5 ? "text-red-400" : totalComplaints > 0 ? "text-yellow-400" : "text-[#10b981]"}`}
                 >
                   {totalComplaints}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div className="text-[10px] text-[#64748b] uppercase tracking-wider mt-1">
                   Customer Complaints
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-4">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#f5f3ff", border: "1px solid #8b5cf630" }}
+              >
+                <div
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color: "#7c3aed",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
                   $
                   {totalScrapCostImpact.toLocaleString("en", {
                     maximumFractionDigits: 0,
                   })}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   Scrap Cost Impact
                 </div>
               </div>
             </div>
 
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Quality Records Detail
@@ -407,26 +447,47 @@ export function QualityTab({
                 <div className="overflow-x-auto max-h-72">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-border hover:bg-transparent">
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableRow style={{ borderColor: "#e2e8f0" }}>
+                        <TableHead
+                          className="text-xs h-8"
+                          style={{ color: "#64748b" }}
+                        >
                           Alloy
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                        <TableHead
+                          className="text-xs h-8"
+                          style={{ color: "#64748b" }}
+                        >
                           Die
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Rejection%
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Surface Defects
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Dim Failure%
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Complaints
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Scrap Cost
                         </TableHead>
                       </TableRow>
@@ -436,7 +497,7 @@ export function QualityTab({
                         <TableRow>
                           <TableCell
                             colSpan={7}
-                            className="text-xs text-muted-foreground text-center py-4"
+                            className="text-xs text-[#64748b] text-center py-4"
                           >
                             No data
                           </TableCell>
@@ -445,20 +506,20 @@ export function QualityTab({
                         qualityRecords.slice(0, 20).map((r, i) => (
                           <TableRow
                             key={`${r.alloyGrade}-${r.dieNo}-${i}`}
-                            className="border-border hover:bg-muted/20"
+                            style={{ borderColor: "#f1f5f9" }}
                           >
-                            <TableCell className="text-xs font-mono font-semibold text-chart-2">
+                            <TableCell className="text-xs font-mono font-semibold text-[#06b6d4]">
                               {r.alloyGrade}
                             </TableCell>
                             <TableCell className="text-xs font-mono">
                               {r.dieNo}
                             </TableCell>
                             <TableCell
-                              className={`text-xs font-mono text-right ${r.rejectionPctByAlloy > 2 ? "text-red-400" : "text-chart-3"}`}
+                              className={`text-xs font-mono text-right ${r.rejectionPctByAlloy > 2 ? "text-red-400" : "text-[#10b981]"}`}
                             >
                               {r.rejectionPctByAlloy.toFixed(2)}%
                             </TableCell>
-                            <TableCell className="text-xs font-mono text-right text-muted-foreground">
+                            <TableCell className="text-xs font-mono text-right text-[#64748b]">
                               {Number(r.surfaceDefectCount).toLocaleString()}
                             </TableCell>
                             <TableCell
@@ -467,11 +528,11 @@ export function QualityTab({
                               {r.dimensionalFailurePct.toFixed(2)}%
                             </TableCell>
                             <TableCell
-                              className={`text-xs font-mono text-right ${Number(r.customerComplaints) > 0 ? "text-yellow-400" : "text-muted-foreground"}`}
+                              className={`text-xs font-mono text-right ${Number(r.customerComplaints) > 0 ? "text-yellow-400" : "text-[#64748b]"}`}
                             >
                               {Number(r.customerComplaints)}
                             </TableCell>
-                            <TableCell className="text-xs font-mono text-right text-chart-4">
+                            <TableCell className="text-xs font-mono text-right text-[#7c3aed]">
                               ${r.scrapCostImpact.toFixed(0)}
                             </TableCell>
                           </TableRow>
@@ -488,7 +549,9 @@ export function QualityTab({
         {/* Root Cause */}
         {subTab === "Root Cause" && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">
                   Scrap Cost Impact Trend
@@ -496,7 +559,7 @@ export function QualityTab({
               </CardHeader>
               <CardContent className="p-3">
                 {scrapTrend.length === 0 ? (
-                  <div className="flex items-center justify-center h-40 text-muted-foreground text-xs">
+                  <div className="flex items-center justify-center h-40 text-[#64748b] text-xs">
                     No data
                   </div>
                 ) : (
@@ -505,10 +568,7 @@ export function QualityTab({
                       data={scrapTrend}
                       margin={{ top: 0, right: 8, left: -10, bottom: 0 }}
                     >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="oklch(0.28 0.015 240)"
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis
                         dataKey="index"
                         tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
@@ -531,7 +591,9 @@ export function QualityTab({
               </CardContent>
             </Card>
 
-            <Card className="bg-card border-border">
+            <Card
+              style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+            >
               <CardHeader className="py-3 px-4">
                 <CardTitle className="text-sm">Root Cause Summary</CardTitle>
               </CardHeader>
@@ -539,14 +601,23 @@ export function QualityTab({
                 <div className="overflow-auto max-h-52">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-border hover:bg-transparent">
-                        <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableRow style={{ borderColor: "#e2e8f0" }}>
+                        <TableHead
+                          className="text-xs h-8"
+                          style={{ color: "#64748b" }}
+                        >
                           Root Cause
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Occurrences
                         </TableHead>
-                        <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                        <TableHead
+                          className="text-xs h-8 text-right"
+                          style={{ color: "#64748b" }}
+                        >
                           Share
                         </TableHead>
                       </TableRow>
@@ -556,7 +627,7 @@ export function QualityTab({
                         <TableRow>
                           <TableCell
                             colSpan={3}
-                            className="text-xs text-muted-foreground text-center py-4"
+                            className="text-xs text-[#64748b] text-center py-4"
                           >
                             No root cause data
                           </TableCell>
@@ -567,15 +638,15 @@ export function QualityTab({
                           .map(([cause, count]) => (
                             <TableRow
                               key={cause}
-                              className="border-border hover:bg-muted/20"
+                              style={{ borderColor: "#f1f5f9" }}
                             >
-                              <TableCell className="text-xs text-foreground">
+                              <TableCell className="text-xs text-[#1e293b]">
                                 {cause}
                               </TableCell>
                               <TableCell className="text-xs font-mono text-right">
                                 {count}
                               </TableCell>
-                              <TableCell className="text-xs font-mono text-right text-muted-foreground">
+                              <TableCell className="text-xs font-mono text-right text-[#64748b]">
                                 {(
                                   (count / qualityRecords.length) *
                                   100

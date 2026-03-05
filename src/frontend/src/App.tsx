@@ -63,6 +63,13 @@ import {
 import { FilterProvider, useFilter } from "./context/FilterContext";
 
 import {
+  MOCK_BACKEND_PRESSES,
+  MOCK_DOWNTIME_EVENTS,
+  MOCK_OEE_DATA,
+  MOCK_ORDERS,
+  MOCK_OVERDUE_DIES,
+  MOCK_PRODUCTION_DATA,
+  MOCK_QUALITY_RECORDS,
   type PressData,
   applyLiveDelta,
   getFilteredMockData,
@@ -231,7 +238,9 @@ function AppInner() {
   const ordersQuery = useOrdersByStatus();
   const overdueDiesQuery = useOverdueDies();
 
-  const backendPresses = pressesQuery.data ?? [];
+  const backendPresses = pressesQuery.data?.length
+    ? pressesQuery.data
+    : MOCK_BACKEND_PRESSES;
   const backendPressIds = useMemo(
     () => backendPresses.map((p) => p.id),
     [backendPresses],
@@ -248,12 +257,27 @@ function AppInner() {
   const oeeDataQuery = useOEEData(backendPressIds);
   const qualityRecordsQuery = useQualityRecords(alloys);
 
-  const backendDowntimeEvents = downtimeEventsQuery.data ?? [];
-  const backendOrders = ordersQuery.data ?? [];
-  const backendOverdueDies = overdueDiesQuery.data ?? [];
-  const backendProductionData = productionMetricsQuery.data ?? {};
-  const backendOEEData = oeeDataQuery.data ?? {};
-  const backendQualityRecords = qualityRecordsQuery.data ?? [];
+  const backendDowntimeEvents = downtimeEventsQuery.data?.length
+    ? downtimeEventsQuery.data
+    : MOCK_DOWNTIME_EVENTS;
+  const backendOrders = ordersQuery.data?.length
+    ? ordersQuery.data
+    : MOCK_ORDERS;
+  const backendOverdueDies = overdueDiesQuery.data?.length
+    ? overdueDiesQuery.data
+    : MOCK_OVERDUE_DIES;
+  const backendProductionData =
+    productionMetricsQuery.data &&
+    Object.keys(productionMetricsQuery.data).length
+      ? productionMetricsQuery.data
+      : MOCK_PRODUCTION_DATA;
+  const backendOEEData =
+    oeeDataQuery.data && Object.keys(oeeDataQuery.data).length
+      ? oeeDataQuery.data
+      : MOCK_OEE_DATA;
+  const backendQualityRecords = qualityRecordsQuery.data?.length
+    ? qualityRecordsQuery.data
+    : MOCK_QUALITY_RECORDS;
 
   // Filter badge string
   const filterBadge = `Shift ${shift} · ${period} · ${date}`;

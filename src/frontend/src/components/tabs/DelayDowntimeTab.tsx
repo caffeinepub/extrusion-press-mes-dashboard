@@ -152,10 +152,29 @@ const DelayTooltip = ({ active, payload, label }: any) => {
 const DowntimeTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="mes-card p-2 text-xs shadow-lg">
-        <p className="font-semibold text-foreground mb-1">{label}</p>
+      <div
+        style={{
+          background: "#1e293b",
+          border: "1px solid #334155",
+          borderRadius: "6px",
+          padding: "8px 12px",
+        }}
+      >
+        <p
+          style={{
+            color: "#f1f5f9",
+            fontSize: "11px",
+            fontWeight: 600,
+            marginBottom: "4px",
+          }}
+        >
+          {label}
+        </p>
         {payload.map((p: any) => (
-          <div key={p.name} style={{ color: p.fill || p.stroke }}>
+          <div
+            key={p.name}
+            style={{ color: p.fill || p.stroke, fontSize: "11px" }}
+          >
             {p.name}:{" "}
             {typeof p.value === "number" ? p.value.toFixed(1) : p.value}
           </div>
@@ -359,8 +378,8 @@ export function DelayDowntimeTab({
       <div>
         <SubTabBar tabs={SUB_TABS} active={SUB_TABS[0]} onChange={() => {}} />
         <div className="p-4 space-y-4">
-          <Skeleton className="h-24 bg-muted" />
-          <Skeleton className="h-64 bg-muted" />
+          <Skeleton className="h-24 bg-[#f8fafc]" />
+          <Skeleton className="h-64 bg-[#f8fafc]" />
         </div>
       </div>
     );
@@ -398,7 +417,7 @@ export function DelayDowntimeTab({
       {isDowntimeSubTab &&
         (subTab === "Breakdown Analysis" ? filterBadge : true) && (
           <div
-            className="flex items-center gap-3 px-4 py-2 border-b border-border/40 flex-wrap"
+            className="flex items-center gap-3 px-4 py-2 border-b border-[#e2e8f0] flex-wrap"
             style={{ background: "#f8fafc" }}
           >
             {filterBadge && (
@@ -415,7 +434,7 @@ export function DelayDowntimeTab({
             )}
             {subTab === "Trend Analysis" && (
               <>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
                   Press:
                 </span>
                 <Select
@@ -423,12 +442,12 @@ export function DelayDowntimeTab({
                   onValueChange={setTrendPressFilter}
                 >
                   <SelectTrigger
-                    className="h-7 text-xs bg-secondary border-border w-40"
+                    className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-40"
                     data-ocid="downtime.trend.select"
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-white border-[#e2e8f0]">
                     <SelectItem value="All" className="text-xs">
                       All Presses
                     </SelectItem>
@@ -443,7 +462,7 @@ export function DelayDowntimeTab({
             )}
             {subTab === "Event Log" && (
               <>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
                   Press:
                 </span>
                 <Select
@@ -451,12 +470,12 @@ export function DelayDowntimeTab({
                   onValueChange={setLogPressFilter}
                 >
                   <SelectTrigger
-                    className="h-7 text-xs bg-secondary border-border w-36"
+                    className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-36"
                     data-ocid="downtime.log.press.select"
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-white border-[#e2e8f0]">
                     <SelectItem value="All" className="text-xs">
                       All Presses
                     </SelectItem>
@@ -467,7 +486,7 @@ export function DelayDowntimeTab({
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                <span className="text-[10px] text-[#64748b] uppercase tracking-wider">
                   Category:
                 </span>
                 <Select
@@ -475,12 +494,12 @@ export function DelayDowntimeTab({
                   onValueChange={setLogCategoryFilter}
                 >
                   <SelectTrigger
-                    className="h-7 text-xs bg-secondary border-border w-40"
+                    className="h-7 text-xs bg-[#f8fafc] border-[#e2e8f0] w-40"
                     data-ocid="downtime.log.category.select"
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-popover border-border">
+                  <SelectContent className="bg-white border-[#e2e8f0]">
                     <SelectItem value="All" className="text-xs">
                       All Categories
                     </SelectItem>
@@ -491,7 +510,7 @@ export function DelayDowntimeTab({
                     ))}
                   </SelectContent>
                 </Select>
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-[10px] text-[#64748b]">
                   {sortedEvents.length} events
                 </span>
               </>
@@ -1127,52 +1146,116 @@ export function DelayDowntimeTab({
         {subTab === "Breakdown Analysis" && (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-2">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#ecfeff", border: "1px solid #06b6d430" }}
+              >
+                <div
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color: "#0891b2",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
                   {avgMTBF.toFixed(1)}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   MTBF (hrs)
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{
+                  background:
+                    avgMTTR > 4
+                      ? "#fef2f2"
+                      : avgMTTR > 2
+                        ? "#fffbeb"
+                        : "#f0fdf4",
+                  border: `1px solid ${avgMTTR > 4 ? "#ef444430" : avgMTTR > 2 ? "#f59e0b30" : "#22c55e30"}`,
+                }}
+              >
                 <div
-                  className={`font-mono text-2xl font-bold ${avgMTTR > 4 ? "text-red-400" : avgMTTR > 2 ? "text-yellow-400" : "text-chart-3"}`}
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color:
+                      avgMTTR > 4
+                        ? "#dc2626"
+                        : avgMTTR > 2
+                          ? "#d97706"
+                          : "#16a34a",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
                 >
                   {avgMTTR.toFixed(1)}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   MTTR (hrs)
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-chart-4">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#f5f3ff", border: "1px solid #8b5cf630" }}
+              >
+                <div
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color: "#7c3aed",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
                   {downtimeEvents.length}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   Breakdown Events
                 </div>
               </div>
-              <div className="mes-card p-3 text-center">
-                <div className="font-mono text-2xl font-bold text-red-400">
+              <div
+                className="rounded-lg p-3 text-center"
+                style={{ background: "#fef2f2", border: "1px solid #ef444430" }}
+              >
+                <div
+                  className="font-black text-xl tabular-nums"
+                  style={{
+                    color: "#dc2626",
+                    fontFamily: '"JetBrains Mono", monospace',
+                  }}
+                >
                   {displayTotalDowntimeHrs.toFixed(1)}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">
+                <div
+                  className="text-[10px] font-bold uppercase tracking-wider mt-1"
+                  style={{ color: "#64748b" }}
+                >
                   Total Downtime (hrs)
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm">
+                  <CardTitle className="text-sm" style={{ color: "#1e293b" }}>
                     Downtime by Category (min)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3">
                   {pieData.length === 0 ? (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground text-xs">
+                    <div
+                      className="flex items-center justify-center h-48 text-xs"
+                      style={{ color: "#64748b" }}
+                    >
                       No downtime events
                     </div>
                   ) : (
@@ -1189,7 +1272,7 @@ export function DelayDowntimeTab({
                             `${name.split(" ")[0]} ${(percent * 100).toFixed(0)}%`
                           }
                           labelLine={{
-                            stroke: "oklch(0.5 0.01 240)",
+                            stroke: "#94a3b8",
                             strokeWidth: 1,
                           }}
                         >
@@ -1204,15 +1287,20 @@ export function DelayDowntimeTab({
                 </CardContent>
               </Card>
 
-              <Card className="bg-card border-border">
+              <Card
+                style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}
+              >
                 <CardHeader className="py-3 px-4">
-                  <CardTitle className="text-sm">
+                  <CardTitle className="text-sm" style={{ color: "#1e293b" }}>
                     Press-wise Downtime (min)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3">
                   {pressCompData.length === 0 ? (
-                    <div className="flex items-center justify-center h-48 text-muted-foreground text-xs">
+                    <div
+                      className="flex items-center justify-center h-48 text-xs"
+                      style={{ color: "#64748b" }}
+                    >
                       No data
                     </div>
                   ) : (
@@ -1221,17 +1309,12 @@ export function DelayDowntimeTab({
                         data={pressCompData}
                         margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                       >
-                        <CartesianGrid
-                          strokeDasharray="3 3"
-                          stroke="oklch(0.28 0.015 240)"
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                         <XAxis
                           dataKey="name"
-                          tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
+                          tick={{ fontSize: 10, fill: "#64748b" }}
                         />
-                        <YAxis
-                          tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
-                        />
+                        <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
                         <Tooltip content={<DowntimeTooltip />} />
                         <Bar
                           dataKey="downtime"
@@ -1250,12 +1333,12 @@ export function DelayDowntimeTab({
 
         {/* ── Trend Analysis (Downtime) ─────────────────────────────────────── */}
         {subTab === "Trend Analysis" && (
-          <Card className="bg-card border-border">
+          <Card style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
             <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm">
+              <CardTitle className="text-sm" style={{ color: "#1e293b" }}>
                 Shift-wise Downtime Trend (min){" "}
                 {trendPressFilter !== "All" && (
-                  <span className="text-chart-2 font-normal">
+                  <span style={{ color: "#0891b2", fontWeight: 400 }}>
                     —{" "}
                     {
                       backendPresses.find((p) => p.id === trendPressFilter)
@@ -1267,7 +1350,10 @@ export function DelayDowntimeTab({
             </CardHeader>
             <CardContent className="p-3">
               {shiftData.length === 0 ? (
-                <div className="flex items-center justify-center h-32 text-muted-foreground text-xs">
+                <div
+                  className="flex items-center justify-center h-32 text-xs"
+                  style={{ color: "#64748b" }}
+                >
                   No data
                 </div>
               ) : (
@@ -1276,17 +1362,12 @@ export function DelayDowntimeTab({
                     data={shiftData}
                     margin={{ top: 0, right: 8, left: -20, bottom: 0 }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="oklch(0.28 0.015 240)"
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
+                      tick={{ fontSize: 10, fill: "#64748b" }}
                     />
-                    <YAxis
-                      tick={{ fontSize: 10, fill: "oklch(0.55 0.01 240)" }}
-                    />
+                    <YAxis tick={{ fontSize: 10, fill: "#64748b" }} />
                     <Tooltip content={<DowntimeTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 10 }} />
                     <Bar
@@ -1313,31 +1394,51 @@ export function DelayDowntimeTab({
 
         {/* ── Event Log (Downtime) ──────────────────────────────────────────── */}
         {subTab === "Event Log" && (
-          <Card className="bg-card border-border">
+          <Card style={{ background: "#ffffff", border: "1px solid #e2e8f0" }}>
             <CardHeader className="py-3 px-4">
-              <CardTitle className="text-sm">Breakdown Event Log</CardTitle>
+              <CardTitle className="text-sm" style={{ color: "#1e293b" }}>
+                Breakdown Event Log
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[500px]">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border hover:bg-transparent">
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                    <TableRow style={{ borderColor: "#e2e8f0" }}>
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Timestamp
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Press
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8">
+                      <TableHead
+                        className="text-xs h-8"
+                        style={{ color: "#64748b" }}
+                      >
                         Category
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         Duration (min)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         MTBF (hrs)
                       </TableHead>
-                      <TableHead className="text-xs text-muted-foreground h-8 text-right">
+                      <TableHead
+                        className="text-xs h-8 text-right"
+                        style={{ color: "#64748b" }}
+                      >
                         MTTR (hrs)
                       </TableHead>
                     </TableRow>
@@ -1347,7 +1448,8 @@ export function DelayDowntimeTab({
                       <TableRow>
                         <TableCell
                           colSpan={6}
-                          className="text-xs text-muted-foreground text-center py-4"
+                          className="text-xs text-center py-4"
+                          style={{ color: "#64748b" }}
                           data-ocid="downtime.event_log.empty_state"
                         >
                           No breakdown events
@@ -1357,13 +1459,19 @@ export function DelayDowntimeTab({
                       sortedEvents.slice(0, 30).map((event, idx) => (
                         <TableRow
                           key={event.id}
-                          className="border-border hover:bg-muted/20"
+                          style={{ borderColor: "#f1f5f9" }}
                           data-ocid={`downtime.event.row.${idx + 1}`}
                         >
-                          <TableCell className="text-xs font-mono text-muted-foreground">
+                          <TableCell
+                            className="text-xs font-mono"
+                            style={{ color: "#64748b" }}
+                          >
                             {formatTime(event.timestamp)}
                           </TableCell>
-                          <TableCell className="text-xs font-mono">
+                          <TableCell
+                            className="text-xs font-mono"
+                            style={{ color: "#334155" }}
+                          >
                             {backendPresses.find((p) => p.id === event.pressId)
                               ?.name ?? event.pressId}
                           </TableCell>
@@ -1381,13 +1489,22 @@ export function DelayDowntimeTab({
                               {formatDowntimeCategory(event.category)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-red-400">
+                          <TableCell
+                            className="text-xs font-mono text-right"
+                            style={{ color: "#dc2626" }}
+                          >
                             {event.durationMinutes.toString()}
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right text-chart-2">
+                          <TableCell
+                            className="text-xs font-mono text-right"
+                            style={{ color: "#0891b2" }}
+                          >
                             {event.mtbfHours.toFixed(1)}
                           </TableCell>
-                          <TableCell className="text-xs font-mono text-right">
+                          <TableCell
+                            className="text-xs font-mono text-right"
+                            style={{ color: "#475569" }}
+                          >
                             {event.mttrHours.toFixed(1)}
                           </TableCell>
                         </TableRow>

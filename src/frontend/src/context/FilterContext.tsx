@@ -1,6 +1,6 @@
 import { type ReactNode, createContext, useContext, useState } from "react";
 
-export type Shift = "A" | "B" | "C";
+export type Shift = "All" | "A" | "B" | "C";
 export type Period = "Today" | "Week" | "Month";
 
 export interface FilterState {
