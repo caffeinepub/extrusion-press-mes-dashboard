@@ -9,7 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PressData } from "../../mockData";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface DieLoadUnloadTabProps {
   presses: PressData[];
@@ -315,35 +315,7 @@ function ExpandablePressRow({ press, idx }: { press: PressData; idx: number }) {
             >
               {press.id}
             </span>
-            <span style={{ color: "#475569", fontSize: "11px" }}>
-              {press.name}
-            </span>
           </div>
-        </td>
-        <td className="px-3 py-2.5">
-          <span
-            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
-            style={{
-              background:
-                press.status === "Running"
-                  ? "#dcfce7"
-                  : press.status === "Breakdown"
-                    ? "#fee2e2"
-                    : press.status === "Setup"
-                      ? "#dbeafe"
-                      : "#fef3c7",
-              color:
-                press.status === "Running"
-                  ? "#16a34a"
-                  : press.status === "Breakdown"
-                    ? "#dc2626"
-                    : press.status === "Setup"
-                      ? "#2563eb"
-                      : "#d97706",
-            }}
-          >
-            {press.status.toUpperCase()}
-          </span>
         </td>
         <td
           className="px-3 py-2.5 text-[10px]"
@@ -721,7 +693,6 @@ export function DieLoadUnloadTab({
                 <tr style={{ background: "#f8fafc" }}>
                   {[
                     "PRESS",
-                    "STATUS",
                     "DIE NO",
                     `LOAD TIME (TGT: ${TARGET_LOAD}m)`,
                     `UNLOAD TIME (TGT: ${TARGET_UNLOAD}m)`,

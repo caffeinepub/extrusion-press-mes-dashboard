@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import type { PieSectorDataItem } from "recharts/types/polar/Pie";
 import type { topAlloys, topDies, wipAgingData } from "../../mockData";
+import { GrafanaPanel } from "../grafana/GrafanaPanel";
 
 type TopDie = (typeof topDies)[number];
 type TopAlloy = (typeof topAlloys)[number];
@@ -401,36 +402,22 @@ export function WIPAgingDonut({ data, onSegmentClick }: WIPAgingDonutProps) {
   const [activeIdx, setActiveIdx] = useState<number | undefined>(undefined);
 
   return (
-    <div
-      className="flex flex-col rounded border border-[#e2e8f0] overflow-hidden h-full"
-      style={{ background: "#ffffff", boxShadow: "0 1px 4px rgba(0,0,0,0.07)" }}
-      data-ocid="dashboard.wip-aging.panel"
+    <GrafanaPanel
+      title="WIP Aging Analysis"
+      accentColor="#0891b2"
+      className="h-full"
     >
-      {/* Header */}
       <div
-        className="flex items-center justify-between px-3 py-2 border-b border-[#e2e8f0]"
-        style={{ background: "#f8fafc" }}
+        className="text-right mb-1"
+        style={{ fontSize: "8px", color: "#9ea6b3", fontStyle: "italic" }}
       >
-        <div className="flex items-center gap-2">
-          <div
-            className="w-0.5 h-3.5 rounded-full shrink-0"
-            style={{ background: "#0891b2" }}
-          />
-          <span className="text-[13px] leading-none">🕐</span>
-          <span
-            className="text-[10px] font-bold uppercase tracking-widest"
-            style={{ color: "#0e7490", letterSpacing: "0.08em" }}
-          >
-            WIP Aging Analysis
-          </span>
-        </div>
-        <span className="text-[9px] italic" style={{ color: "#94a3b8" }}>
-          Click segment for press detail
-        </span>
+        Click segment for press detail
       </div>
-
       {/* Body: donut left, legend right */}
-      <div className="flex items-center justify-center px-4 py-3 gap-6 flex-1">
+      <div
+        className="flex items-center justify-center px-2 py-1 gap-4 flex-1"
+        data-ocid="dashboard.wip-aging.panel"
+      >
         {/* Donut */}
         <div style={{ width: 160, height: 160, flexShrink: 0 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -519,23 +506,23 @@ export function WIPAgingDonut({ data, onSegmentClick }: WIPAgingDonutProps) {
           {/* Total */}
           <div
             className="border-t pt-2 flex items-center justify-between"
-            style={{ borderColor: "#e2e8f0" }}
+            style={{ borderColor: "#e4e7ed" }}
           >
             <span
               className="text-[9px] font-bold uppercase tracking-wider"
-              style={{ color: "#64748b" }}
+              style={{ color: "#6e7783" }}
             >
               Total WIP
             </span>
             <span
               className="font-black text-[14px] font-mono"
-              style={{ color: "#0e7490" }}
+              style={{ color: "#0891b2" }}
             >
               {total.toFixed(1)} MT
             </span>
           </div>
         </div>
       </div>
-    </div>
+    </GrafanaPanel>
   );
 }

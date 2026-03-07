@@ -24,16 +24,6 @@ interface TotalWIPModalProps {
   totalWIP: number;
 }
 
-const STATUS_STYLES: Record<
-  PressWIPRow["status"],
-  { bg: string; color: string; label: string }
-> = {
-  Running: { bg: "#dcfce7", color: "#16a34a", label: "RUNNING" },
-  Idle: { bg: "#ca8a0422", color: "#f59e0b", label: "IDLE" },
-  Breakdown: { bg: "#dc262622", color: "#ef4444", label: "BREAKDOWN" },
-  Setup: { bg: "#2563eb22", color: "#60a5fa", label: "SETUP" },
-};
-
 const PRESS_ACCENT_COLORS = [
   "#22c55e",
   "#3b82f6",
@@ -203,7 +193,7 @@ export function TotalWIPModal({ open, onClose, totalWIP }: TotalWIPModalProps) {
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {row.pressId} {row.pressName}
+                      {row.pressId}
                     </span>
                     <div
                       className="flex-1 h-3 rounded-sm overflow-hidden"
@@ -253,7 +243,6 @@ export function TotalWIPModal({ open, onClose, totalWIP }: TotalWIPModalProps) {
                   <tr style={{ background: "#f8fafc" }}>
                     {[
                       "PRESS",
-                      "STATUS",
                       "WIP (MT)",
                       "<24HR (MT)",
                       "24-72HR (MT)",
@@ -278,7 +267,6 @@ export function TotalWIPModal({ open, onClose, totalWIP }: TotalWIPModalProps) {
                 <tbody>
                   {pressRows.map((row, idx) => {
                     const pct = sumWIP > 0 ? (row.wipMT / sumWIP) * 100 : 0;
-                    const st = STATUS_STYLES[row.status];
                     return (
                       <tr
                         key={row.pressId}
@@ -303,22 +291,7 @@ export function TotalWIPModal({ open, onClose, totalWIP }: TotalWIPModalProps) {
                             >
                               {row.pressId}
                             </span>
-                            <span style={{ color: "#475569" }}>
-                              {row.pressName}
-                            </span>
                           </div>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span
-                            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
-                            style={{
-                              background: st.bg,
-                              color: st.color,
-                              border: `1px solid ${st.color}30`,
-                            }}
-                          >
-                            {st.label}
-                          </span>
                         </td>
                         <td
                           className="px-3 py-2.5 tabular-nums font-bold text-right"
@@ -400,7 +373,6 @@ export function TotalWIPModal({ open, onClose, totalWIP }: TotalWIPModalProps) {
                     <td
                       className="px-3 py-2.5 font-bold uppercase tracking-wider text-[10px]"
                       style={{ color: ACCENT_COLOR }}
-                      colSpan={2}
                     >
                       TOTAL / FLEET
                     </td>

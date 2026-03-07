@@ -24,16 +24,6 @@ interface TotalInputModalProps {
   totalInput: number;
 }
 
-const STATUS_STYLES: Record<
-  PressInputRow["status"],
-  { bg: string; color: string; label: string }
-> = {
-  Running: { bg: "#dcfce7", color: "#16a34a", label: "RUNNING" },
-  Idle: { bg: "#ca8a0422", color: "#f59e0b", label: "IDLE" },
-  Breakdown: { bg: "#dc262622", color: "#ef4444", label: "BREAKDOWN" },
-  Setup: { bg: "#2563eb22", color: "#60a5fa", label: "SETUP" },
-};
-
 const PRESS_ACCENT_COLORS = [
   "#22c55e",
   "#3b82f6",
@@ -243,7 +233,7 @@ export function TotalInputModal({
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {row.pressId} {row.pressName}
+                      {row.pressId}
                     </span>
                     <div
                       className="flex-1 h-3 rounded-sm overflow-hidden"
@@ -293,7 +283,6 @@ export function TotalInputModal({
                   <tr style={{ background: "#f8fafc" }}>
                     {[
                       "PRESS",
-                      "STATUS",
                       "BILLET CT",
                       "INPUT WT (MT)",
                       "AVG BILLET WT (KG)",
@@ -319,7 +308,6 @@ export function TotalInputModal({
                   {pressRows.map((row, idx) => {
                     const pct =
                       sumInput > 0 ? (row.inputWeightMT / sumInput) * 100 : 0;
-                    const st = STATUS_STYLES[row.status];
                     return (
                       <tr
                         key={row.pressId}
@@ -344,23 +332,7 @@ export function TotalInputModal({
                             >
                               {row.pressId}
                             </span>
-                            <span style={{ color: "#475569" }}>
-                              {row.pressName}
-                            </span>
                           </div>
-                        </td>
-                        {/* Status badge */}
-                        <td className="px-3 py-2.5">
-                          <span
-                            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
-                            style={{
-                              background: st.bg,
-                              color: st.color,
-                              border: `1px solid ${st.color}30`,
-                            }}
-                          >
-                            {st.label}
-                          </span>
                         </td>
                         {/* Billet Count */}
                         <td
@@ -452,7 +424,6 @@ export function TotalInputModal({
                     <td
                       className="px-3 py-2.5 font-bold uppercase tracking-wider text-[10px]"
                       style={{ color: "#16a34a" }}
-                      colSpan={2}
                     >
                       TOTAL / FLEET
                     </td>
@@ -507,31 +478,10 @@ export function TotalInputModal({
             </div>
           </ScrollArea>
 
-          {/* Legend row */}
-          <div className="flex items-center gap-4 mt-3 flex-wrap">
-            {(
-              ["Running", "Idle", "Breakdown", "Setup"] as Array<
-                PressInputRow["status"]
-              >
-            ).map((s) => {
-              const st = STATUS_STYLES[s];
-              return (
-                <div key={s} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: st.color }}
-                  />
-                  <span
-                    className="text-[9px] font-bold uppercase tracking-wider"
-                    style={{ color: "#64748b" }}
-                  >
-                    {st.label}
-                  </span>
-                </div>
-              );
-            })}
+          {/* Timestamp row */}
+          <div className="flex items-center justify-end mt-3">
             <span
-              className="ml-auto text-[9px]"
+              className="text-[9px]"
               style={{
                 color: "#64748b",
                 fontFamily: '"JetBrains Mono", monospace',

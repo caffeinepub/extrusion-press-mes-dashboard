@@ -25,7 +25,7 @@ import {
   getPressStatusColor,
   getPressStatusDot,
 } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 import type { PressData } from "../../mockData";
 

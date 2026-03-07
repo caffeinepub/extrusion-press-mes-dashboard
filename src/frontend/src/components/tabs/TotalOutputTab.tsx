@@ -9,7 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PressData } from "../../mockData";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface TotalOutputTabProps {
   presses: PressData[];
@@ -30,16 +30,6 @@ const SHIFT_DATA = [
   { shift: "B", outputMT: 9.5, targetMT: 11.0, yieldPct: 89.2 },
   { shift: "C", outputMT: 8.6, targetMT: 11.0, yieldPct: 86.4 },
 ];
-
-const STATUS_STYLES: Record<
-  PressData["status"],
-  { bg: string; color: string }
-> = {
-  Running: { bg: "#dcfce7", color: "#16a34a" },
-  Idle: { bg: "#fef3c7", color: "#d97706" },
-  Breakdown: { bg: "#fee2e2", color: "#dc2626" },
-  Setup: { bg: "#dbeafe", color: "#2563eb" },
-};
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
@@ -292,7 +282,6 @@ export function TotalOutputTab({
                   <tr style={{ background: "#f8fafc" }}>
                     {[
                       "PRESS",
-                      "STATUS",
                       "ALLOY",
                       "OUTPUT MT",
                       "OUTPUT RATE (KG/H)",
@@ -316,7 +305,6 @@ export function TotalOutputTab({
                 </thead>
                 <tbody>
                   {filtered.map((row, idx) => {
-                    const st = STATUS_STYLES[row.status];
                     const yc =
                       row.yieldPct >= 90
                         ? "#16a34a"
@@ -347,18 +335,7 @@ export function TotalOutputTab({
                             >
                               {row.pressId}
                             </span>
-                            <span style={{ color: "#475569" }}>
-                              {row.pressName}
-                            </span>
                           </div>
-                        </td>
-                        <td className="px-3 py-2.5">
-                          <span
-                            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
-                            style={{ background: st.bg, color: st.color }}
-                          >
-                            {row.status.toUpperCase()}
-                          </span>
                         </td>
                         <td
                           className="px-3 py-2.5 font-mono text-[10px]"

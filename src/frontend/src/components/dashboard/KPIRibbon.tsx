@@ -12,6 +12,7 @@ import {
   Timer,
   Zap,
 } from "lucide-react";
+import { GrafanaStatTile } from "../grafana/GrafanaStatTile";
 
 interface KPITile {
   label: string;
@@ -24,6 +25,21 @@ interface KPITile {
   onClick?: () => void;
   ocid: string;
 }
+
+type KPITileVisibility = {
+  totalInput?: boolean;
+  totalOutput?: boolean;
+  totalScrap?: boolean;
+  recovery?: boolean;
+  wipStock?: boolean;
+  contactTime?: boolean;
+  totalDelay?: boolean;
+  ppPlanAct?: boolean;
+  fleetOEE?: boolean;
+  totalUtil?: boolean;
+  energy?: boolean;
+  gasConsumption?: boolean;
+};
 
 interface KPIRibbonProps {
   data: {
@@ -54,28 +70,7 @@ interface KPIRibbonProps {
   onTotalUtilClick?: () => void;
   onTotalEnergyClick?: () => void;
   onTotalGasClick?: () => void;
-}
-
-// Expand arrow icon for clickable tiles
-function ExpandArrow({ color }: { color: string }) {
-  return (
-    <svg
-      width="8"
-      height="8"
-      viewBox="0 0 8 8"
-      fill="none"
-      role="img"
-      aria-label="View details"
-      style={{ color, marginLeft: "2px" }}
-    >
-      <path
-        d="M1 1h6v6M7 1L1 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  visibleTiles?: KPITileVisibility;
 }
 
 export function KPIRibbon({
@@ -92,9 +87,11 @@ export function KPIRibbon({
   onTotalUtilClick,
   onTotalEnergyClick,
   onTotalGasClick,
+  visibleTiles,
 }: KPIRibbonProps) {
-  const tiles: KPITile[] = [
+  const allTiles: (KPITile & { visKey: keyof KPITileVisibility })[] = [
     {
+      visKey: "totalInput",
       label: "Total Input",
       value: data.totalInput.toFixed(1),
       unit: "MT",
@@ -106,6 +103,7 @@ export function KPIRibbon({
       ocid: "kpi.total_input.button",
     },
     {
+      visKey: "totalOutput",
       label: "Total Output",
       value: data.totalOutput.toFixed(1),
       unit: "MT",
@@ -117,6 +115,7 @@ export function KPIRibbon({
       ocid: "kpi.total_output.button",
     },
     {
+      visKey: "totalScrap",
       label: "Total Scrap",
       value: data.totalScrap.toFixed(1),
       unit: "%",
@@ -128,6 +127,7 @@ export function KPIRibbon({
       ocid: "kpi.total_scrap.button",
     },
     {
+      visKey: "recovery",
       label: "Total Recovery",
       value: data.totalRecovery.toFixed(1),
       unit: "%",
@@ -139,6 +139,7 @@ export function KPIRibbon({
       ocid: "kpi.total_recovery.button",
     },
     {
+      visKey: "wipStock",
       label: "WIP Stock",
       value: data.totalWIP.toFixed(1),
       unit: "MT",
@@ -150,6 +151,7 @@ export function KPIRibbon({
       ocid: "kpi.wip_stock.button",
     },
     {
+      visKey: "contactTime",
       label: "Contact Time",
       value: data.contactTime.toFixed(1),
       unit: "sec",
@@ -161,6 +163,7 @@ export function KPIRibbon({
       ocid: "kpi.contact_time.button",
     },
     {
+      visKey: "totalDelay",
       label: "Total Delay",
       value: data.totalDelay,
       unit: "min",
@@ -172,6 +175,7 @@ export function KPIRibbon({
       ocid: "kpi.total_delay.button",
     },
     {
+      visKey: "ppPlanAct",
       label: "Press Kg/H",
       value: Math.round(data.pressKgH).toLocaleString(),
       unit: "kg/h",
@@ -183,6 +187,7 @@ export function KPIRibbon({
       ocid: "kpi.press_kgh.button",
     },
     {
+      visKey: "fleetOEE",
       label: "Fleet OEE",
       value: data.fleetOEE.toFixed(1),
       unit: "%",
@@ -194,6 +199,7 @@ export function KPIRibbon({
       ocid: "kpi.fleet_oee.button",
     },
     {
+      visKey: "totalUtil",
       label: "Total Util",
       value: data.totalUtil.toFixed(1),
       unit: "%",
@@ -205,6 +211,7 @@ export function KPIRibbon({
       ocid: "kpi.total_util.button",
     },
     {
+      visKey: "energy",
       label: "Energy",
       value: data.totalEnergy.toFixed(2),
       unit: "kWh",
@@ -216,6 +223,7 @@ export function KPIRibbon({
       ocid: "kpi.total_energy.button",
     },
     {
+      visKey: "gasConsumption",
       label: "Gas",
       value: data.totalGas.toFixed(2),
       unit: "Nm³",
@@ -228,107 +236,33 @@ export function KPIRibbon({
     },
   ];
 
+  // Filter tiles based on visibility settings
+  const tiles = visibleTiles
+    ? allTiles.filter((t) => visibleTiles[t.visKey] !== false)
+    : allTiles;
+
   return (
     <div
-      className="grid border-b border-[#e2e8f0]"
+      className="grid border-b"
       style={{
         gridTemplateColumns: `repeat(${tiles.length}, 1fr)`,
-        background: "#ffffff",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        background: "#f0f2f5",
+        borderColor: "#e4e7ed",
+        gap: "1px",
+        padding: "1px",
       }}
     >
-      {tiles.map((tile, i) => {
-        const clickable = !!tile.onClick;
-        return (
-          <div
-            key={tile.label}
-            className="relative flex flex-col justify-between px-2.5 py-2"
-            onClick={clickable ? tile.onClick : undefined}
-            role={clickable ? "button" : undefined}
-            tabIndex={clickable ? 0 : undefined}
-            data-ocid={clickable ? tile.ocid : undefined}
-            onKeyDown={
-              clickable
-                ? (e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      tile.onClick?.();
-                    }
-                  }
-                : undefined
-            }
-            aria-label={
-              clickable
-                ? `View press wise ${tile.label.toLowerCase()} breakdown`
-                : undefined
-            }
-            style={{
-              background: tile.bgColor,
-              borderRight: i < tiles.length - 1 ? "1px solid #e2e8f0" : "none",
-              borderTop: `2px solid ${tile.borderColor}`,
-              minHeight: "62px",
-              cursor: clickable ? "pointer" : "default",
-              transition: "background 0.15s ease",
-            }}
-            onMouseEnter={
-              clickable
-                ? (e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      `${tile.borderColor}20`;
-                  }
-                : undefined
-            }
-            onMouseLeave={
-              clickable
-                ? (e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      tile.bgColor;
-                  }
-                : undefined
-            }
-          >
-            {/* Label row with icon */}
-            <div className="flex items-center justify-between mb-1">
-              <span
-                className="text-[9px] font-bold uppercase tracking-widest leading-tight flex items-center gap-1"
-                style={{ color: "#64748b", letterSpacing: "0.08em" }}
-              >
-                {tile.label}
-                {clickable && <ExpandArrow color={tile.borderColor} />}
-              </span>
-              <span
-                className="flex items-center justify-center w-5 h-5 rounded"
-                style={{
-                  color: tile.color,
-                  background: `${tile.borderColor}15`,
-                }}
-              >
-                {tile.icon}
-              </span>
-            </div>
-            {/* Value */}
-            <div className="flex items-baseline gap-0.5">
-              <span
-                className="font-black tabular-nums leading-none"
-                style={{
-                  color: tile.color,
-                  fontSize: "20px",
-                  fontFamily: '"JetBrains Mono", monospace',
-                  lineHeight: 1,
-                }}
-              >
-                {tile.value}
-              </span>
-              <span
-                className="text-[10px] font-bold ml-0.5"
-                style={{ color: `${tile.borderColor}cc` }}
-              >
-                {tile.unit}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+      {tiles.map((tile) => (
+        <GrafanaStatTile
+          key={tile.label}
+          label={tile.label}
+          value={tile.value}
+          unit={tile.unit}
+          thresholdColor={tile.color}
+          onClick={tile.onClick}
+          data-ocid={tile.onClick ? tile.ocid : undefined}
+        />
+      ))}
     </div>
   );
 }

@@ -30,6 +30,8 @@ export interface PressData {
   ppActBillets: number; // Production Plan – actual billet/shot count extruded
   dieLoad: number; // Die Load time (min)
   dieUnload: number; // Die Unload time (min)
+  dieLoadCount: number; // Number of dies loaded
+  dieUnloadCount: number; // Number of dies unloaded
   contactTime: number; // Contact Time (sec)
   recovery: number; // Recovery %
   inputMt: number; // Input in Metric Tonnes
@@ -158,6 +160,8 @@ const BASE_PRESSES = [
     ppActBillets: 104,
     dieLoad: 12,
     dieUnload: 8,
+    dieLoadCount: 3,
+    dieUnloadCount: 3,
     contactTime: 42,
     recovery: 91.5,
     inputMt: 42.6,
@@ -187,6 +191,8 @@ const BASE_PRESSES = [
     ppActBillets: 14,
     dieLoad: 0,
     dieUnload: 0,
+    dieLoadCount: 1,
+    dieUnloadCount: 2,
     contactTime: 0,
     recovery: 68.2,
     inputMt: 16.0,
@@ -216,6 +222,8 @@ const BASE_PRESSES = [
     ppActBillets: 92,
     dieLoad: 14,
     dieUnload: 10,
+    dieLoadCount: 2,
+    dieUnloadCount: 2,
     contactTime: 38,
     recovery: 88.7,
     inputMt: 38.0,
@@ -245,6 +253,8 @@ const BASE_PRESSES = [
     ppActBillets: 84,
     dieLoad: 11,
     dieUnload: 7,
+    dieLoadCount: 2,
+    dieUnloadCount: 2,
     contactTime: 35,
     recovery: 90.1,
     inputMt: 32.0,
@@ -274,6 +284,8 @@ const BASE_PRESSES = [
     ppActBillets: 126,
     dieLoad: 9,
     dieUnload: 6,
+    dieLoadCount: 4,
+    dieUnloadCount: 4,
     contactTime: 30,
     recovery: 94.8,
     inputMt: 50.0,

@@ -26,29 +26,37 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "General Sans";
+  src: url("/assets/fonts/GeneralSans[wght].woff2") format("woff2");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    --radius: 0.25rem;
-    /* Clean white/light MES theme */
-    --background: 0.98 0 0;
-    --foreground: 0.15 0.01 240;
+    --radius: 0.1875rem; /* 3px — Grafana border-radius */
+    /* Grafana Light MES theme */
+    --background: 0.95 0.004 240;
+    --foreground: 0.22 0.008 250;
     --card: 1 0 0;
-    --card-foreground: 0.15 0.01 240;
+    --card-foreground: 0.22 0.008 250;
     --popover: 1 0 0;
-    --popover-foreground: 0.15 0.01 240;
-    --primary: 0.62 0.18 55;
+    --popover-foreground: 0.22 0.008 250;
+    --primary: 0.61 0.22 35;   /* Grafana orange #ff6600 */
     --primary-foreground: 1 0 0;
-    --secondary: 0.95 0.005 240;
-    --secondary-foreground: 0.3 0.01 240;
-    --muted: 0.95 0.005 240;
-    --muted-foreground: 0.45 0.01 240;
+    --secondary: 0.97 0.003 240;
+    --secondary-foreground: 0.28 0.01 250;
+    --muted: 0.97 0.003 240;
+    --muted-foreground: 0.47 0.01 250;
     --accent: 0.55 0.18 200;
     --accent-foreground: 1 0 0;
     --destructive: 0.55 0.22 25;
     --destructive-foreground: 1 0 0;
-    --border: 0.88 0.008 240;
-    --input: 0.92 0.005 240;
-    --ring: 0.62 0.18 55;
+    --border: 0.9 0.006 250;
+    --input: 0.95 0.003 240;
+    --ring: 0.61 0.22 35;
 
     /* Status colors — keep vivid for contrast on white */
     --status-running: 0.55 0.2 145;
@@ -135,6 +143,25 @@
   }
 }
 
+/* Grafana Light Theme tokens */
+:root {
+  --grafana-page-bg: #f0f2f5;
+  --grafana-panel-bg: #ffffff;
+  --grafana-panel-header: #f7f8fa;
+  --grafana-panel-border: #e4e7ed;
+  --grafana-panel-radius: 3px;
+  --grafana-title-color: #464c54;
+  --grafana-icon-color: #9ea6b3;
+  --grafana-body-text: #333d47;
+  --grafana-muted-text: #6e7783;
+  --grafana-orange: #ff6600;
+  --grafana-success: #10b981;
+  --grafana-warning: #f59e0b;
+  --grafana-critical: #ef4444;
+  --grafana-tab-bg: #f7f8fa;
+  --grafana-toolbar-border: #d0d6df;
+}
+
 /* MES Dashboard specific utilities */
 @layer utilities {
   .status-running {
@@ -203,6 +230,11 @@
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
   .kpi-glow-green {

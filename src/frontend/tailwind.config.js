@@ -16,7 +16,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['"Mona Sans"', 'system-ui', 'sans-serif'],
+        sans: ['"General Sans"', '"Mona Sans"', 'system-ui', 'sans-serif'],
         display: ['"Cabinet Grotesk"', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },

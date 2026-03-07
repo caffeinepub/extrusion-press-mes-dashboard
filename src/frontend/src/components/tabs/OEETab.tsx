@@ -28,7 +28,7 @@ import {
 import type { DowntimeEvent, OEEData, Press } from "../../backend.d";
 import type { PressData } from "../../mockData";
 import { formatDowntimeCategory, getLatest } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface OEETabProps {
   presses: Press[];

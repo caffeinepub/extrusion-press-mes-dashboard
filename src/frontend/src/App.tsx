@@ -17,6 +17,8 @@ import { OperatorView } from "./components/dashboard/OperatorView";
 import { PressDetailModal } from "./components/dashboard/PressDetailModal";
 import { PressFleetTable } from "./components/dashboard/PressFleetTable";
 import { PressKgHModal } from "./components/dashboard/PressKgHModal";
+import { SettingsPanel } from "./components/dashboard/SettingsPanel";
+import { SupervisorView } from "./components/dashboard/SupervisorView";
 import { TopNavBar } from "./components/dashboard/TopNavBar";
 import { WIPAgingDonut } from "./components/dashboard/TopTablesAndWIP";
 import { TotalBacklogModal } from "./components/dashboard/TotalBacklogModal";
@@ -59,6 +61,8 @@ import {
 } from "./hooks/useQueries";
 
 import { FilterProvider, useFilter } from "./context/FilterContext";
+import { SettingsProvider, useSettings } from "./context/SettingsContext";
+import type { Role as SettingsRole } from "./context/SettingsContext";
 
 import {
   MOCK_BACKEND_PRESSES,
@@ -73,7 +77,7 @@ import {
   getFilteredMockData,
 } from "./mockData";
 
-type Role = "Operator" | "Management" | "CEO";
+type Role = "Operator" | "Management" | "CEO" | "Supervisor";
 
 type ManagementTab =
   | "Dashboard"
@@ -116,12 +120,23 @@ const MANAGEMENT_TABS: ManagementTab[] = [
   "Quality",
 ];
 
-// ─── Inner app (has access to FilterContext) ────────────────────────────────
+// ─── Inner app (has access to FilterContext and SettingsContext) ─────────────
 function AppInner() {
   const { shift, period, date } = useFilter();
+  const { getViewSettings, setActiveSettingsRole } = useSettings();
 
   const [role, setRole] = useState<Role>("Management");
+  // Use the current dashboard role's settings for rendering
+  const settings = getViewSettings(role as SettingsRole);
+
   const [activeTab, setActiveTab] = useState<ManagementTab>("Dashboard");
+  const [showSettings, setShowSettings] = useState(false);
+
+  // When opening settings, pre-select the current dashboard role
+  const handleOpenSettings = () => {
+    setActiveSettingsRole(role as SettingsRole);
+    setShowSettings(true);
+  };
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [showTotalInputModal, setShowTotalInputModal] = useState(false);
   const [showTotalOutputModal, setShowTotalOutputModal] = useState(false);
@@ -165,8 +180,12 @@ function AppInner() {
     setLastUpdated(new Date());
   }, [filteredData]);
 
-  // Simulate live data refresh every 30 seconds
+  // Simulate live data refresh every 30 seconds (only when autoRefresh is enabled)
   useEffect(() => {
+    if (!settings.autoRefresh) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
     intervalRef.current = setInterval(() => {
       setPresses((prev) =>
         prev.map((p) => ({
@@ -218,7 +237,7 @@ function AppInner() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, []);
+  }, [settings.autoRefresh]);
 
   // Build production chart data from live press data
   const productionChartData = presses.map((p) => ({
@@ -277,36 +296,63 @@ function AppInner() {
   // Filter badge string
   const filterBadge = `Shift ${shift} · ${period} · ${date}`;
 
+  // Filtered tabs based on settings — Dashboard is always visible
+  const activeTabs = MANAGEMENT_TABS.filter(
+    (t) => t === "Dashboard" || settings.visibleTabs[t] !== false,
+  );
+
+  // If the active tab got hidden, reset to Dashboard
+  const safeActiveTab = activeTabs.includes(activeTab)
+    ? activeTab
+    : "Dashboard";
+
   return (
     <div
       className="h-screen flex flex-col overflow-hidden"
       style={{
-        background: "#ffffff",
-        fontFamily: '"Mona Sans", system-ui, sans-serif',
+        background: "#f0f2f5",
+        fontFamily: '"General Sans", "Mona Sans", system-ui, sans-serif',
       }}
     >
       {/* Toast notifications */}
       <Toaster theme="light" />
 
+      {/* Settings Panel (renders outside layout flow) */}
+      <SettingsPanel
+        open={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
       {/* Top Navigation Bar */}
-      <TopNavBar role={role} onRoleChange={setRole} lastUpdated={lastUpdated} />
+      <TopNavBar
+        role={role}
+        onRoleChange={setRole}
+        lastUpdated={lastUpdated}
+        onSettingsClick={handleOpenSettings}
+        showLiveClock={settings.showLiveClock}
+        showLastUpdated={settings.showLastUpdated}
+        showAIBadge={settings.showAIBadge}
+      />
 
       {/* KPI Ribbon */}
-      <KPIRibbon
-        data={kpis}
-        onTotalInputClick={() => setShowTotalInputModal(true)}
-        onTotalOutputClick={() => setShowTotalOutputModal(true)}
-        onTotalScrapClick={() => setShowTotalScrapModal(true)}
-        onTotalRecoveryClick={() => setShowTotalRecoveryModal(true)}
-        onTotalWIPClick={() => setShowTotalWIPModal(true)}
-        onContactTimeClick={() => setShowContactTimeModal(true)}
-        onTotalDelayClick={() => setShowTotalDelayModal(true)}
-        onPressKgHClick={() => setShowPressKgHModal(true)}
-        onFleetOEEClick={() => setShowFleetOEEModal(true)}
-        onTotalUtilClick={() => setShowTotalUtilModal(true)}
-        onTotalEnergyClick={() => setShowTotalEnergyModal(true)}
-        onTotalGasClick={() => setShowGasModal(true)}
-      />
+      {settings.showKPIRibbon && (
+        <KPIRibbon
+          data={kpis}
+          onTotalInputClick={() => setShowTotalInputModal(true)}
+          onTotalOutputClick={() => setShowTotalOutputModal(true)}
+          onTotalScrapClick={() => setShowTotalScrapModal(true)}
+          onTotalRecoveryClick={() => setShowTotalRecoveryModal(true)}
+          onTotalWIPClick={() => setShowTotalWIPModal(true)}
+          onContactTimeClick={() => setShowContactTimeModal(true)}
+          onTotalDelayClick={() => setShowTotalDelayModal(true)}
+          onPressKgHClick={() => setShowPressKgHModal(true)}
+          onFleetOEEClick={() => setShowFleetOEEModal(true)}
+          onTotalUtilClick={() => setShowTotalUtilModal(true)}
+          onTotalEnergyClick={() => setShowTotalEnergyModal(true)}
+          onTotalGasClick={() => setShowGasModal(true)}
+          visibleTiles={settings.kpiTiles}
+        />
+      )}
 
       {/* KPI Drilldown Modals */}
       <TotalInputModal
@@ -408,41 +454,59 @@ function AppInner() {
             fleetUtil={kpis.totalUtil}
           />
         </div>
+      ) : role === "Supervisor" ? (
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{ background: "#f0f2f5" }}
+        >
+          <SupervisorView
+            presses={presses}
+            orders={backendOrders}
+            overdueDies={backendOverdueDies}
+            onPressClick={(p) => setSelectedPress(p)}
+            filterBadge={filterBadge}
+          />
+        </div>
       ) : (
         /* Management View — tabbed dashboard */
         <div
           className="flex-1 overflow-hidden flex flex-col"
-          style={{ background: "#f8fafc" }}
+          style={{ background: "#f0f2f5" }}
         >
-          {/* Tab Bar */}
+          {/* Tab Bar — Grafana style */}
           <div
             className="shrink-0 border-b overflow-x-auto"
             style={{
-              background: "#ffffff",
-              borderColor: "#e2e8f0",
+              background: "#f7f8fa",
+              borderColor: "#e4e7ed",
               scrollbarWidth: "none",
             }}
           >
-            <div className="flex items-end gap-0 px-1.5 min-w-max">
-              {MANAGEMENT_TABS.map((tab) => {
-                const isActive = activeTab === tab;
+            <div className="flex items-end gap-0 px-1 min-w-max">
+              {activeTabs.map((tab) => {
+                const isActive = safeActiveTab === tab;
                 return (
                   <button
                     key={tab}
                     type="button"
                     onClick={() => setActiveTab(tab)}
-                    className="relative px-3.5 py-2 text-[11px] font-semibold tracking-wide transition-colors whitespace-nowrap shrink-0"
-                    data-ocid={`nav.${tab.toLowerCase().replace("-", "_")}.tab`}
+                    className="relative px-3 py-2 text-[10px] font-semibold tracking-wider transition-colors whitespace-nowrap shrink-0"
+                    data-ocid={`nav.${tab
+                      .toLowerCase()
+                      .replace(/[\s&()]/g, "_")
+                      .replace(/_+/g, "_")}.tab`}
                     style={{
-                      color: isActive ? "#1d4ed8" : "#64748b",
-                      background: isActive ? "#eff6ff" : "transparent",
-                      borderBottom: isActive
-                        ? "2px solid #3b82f6"
+                      color: isActive ? "#ff6600" : "#6e7783",
+                      background: isActive ? "#ffffff" : "transparent",
+                      borderTop: isActive
+                        ? "2px solid #ff6600"
                         : "2px solid transparent",
-                      letterSpacing: "0.03em",
+                      borderBottom: isActive ? "1px solid #ffffff" : "none",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
                     }}
                   >
-                    {tab.toUpperCase()}
+                    {tab}
                   </button>
                 );
               })}
@@ -451,56 +515,74 @@ function AppInner() {
 
           {/* Tab Content — keyed on filter so data resets on filter change */}
           <div className="flex-1 overflow-y-auto">
-            {activeTab === "Dashboard" && (
-              <div key={filterBadge} style={{ background: "#f8fafc" }}>
+            {safeActiveTab === "Dashboard" && (
+              <div key={filterBadge} style={{ background: "#f0f2f5" }}>
                 {/* Row 1: Charts Row — 3 equal columns */}
-                <div
-                  className="grid p-1.5 gap-1.5"
-                  style={{ gridTemplateColumns: "1fr 1fr 1fr" }}
-                >
-                  <ProductionVsPlanChart productionData={productionChartData} />
-                  <OEEQualityChart presses={presses} />
-                  <OutputRatesChart presses={presses} />
-                </div>
+                {settings.showChartsRow && (
+                  <div
+                    className="grid p-1.5 gap-1.5"
+                    style={{ gridTemplateColumns: "1fr 1fr 1fr" }}
+                  >
+                    <ProductionVsPlanChart
+                      productionData={productionChartData}
+                    />
+                    <OEEQualityChart presses={presses} />
+                    <OutputRatesChart presses={presses} />
+                  </div>
+                )}
 
                 {/* Row 2: Press Fleet Table — full width */}
-                <div className="px-1.5 pb-1.5">
-                  <PressFleetTable
-                    presses={presses}
-                    onPressClick={(p) => setSelectedPress(p)}
-                  />
-                </div>
+                {settings.showPressFleetTable && (
+                  <div className="px-1.5 pb-1.5">
+                    <PressFleetTable
+                      presses={presses}
+                      onPressClick={(p) => setSelectedPress(p)}
+                      visibleColumns={settings.fleetColumns}
+                    />
+                  </div>
+                )}
 
                 {/* Row 3: Downtime Analysis (55%) | WIP Aging (45%) */}
-                <div
-                  className="grid gap-1.5 px-1.5 pb-1.5"
-                  style={{ gridTemplateColumns: "55fr 45fr" }}
-                >
-                  <DowntimeAnalysis
-                    categories={filteredData.downtimeCategories}
-                    totalHrs={filteredData.totalDowntimeHrs}
-                    onCategoryClick={(cat) =>
-                      setDowntimePressModal({
-                        name: cat.name,
-                        color: cat.color,
-                      })
-                    }
-                  />
-                  <WIPAgingDonut
-                    data={filteredData.wipAgingData}
-                    onSegmentClick={(seg) =>
-                      setWIPPressModal({
-                        label: seg.label,
-                        color: seg.color,
-                        value: seg.value,
-                      })
-                    }
-                  />
-                </div>
+                {(settings.showDowntimeAnalysis || settings.showWIPAging) && (
+                  <div
+                    className="grid gap-1.5 px-1.5 pb-1.5"
+                    style={{
+                      gridTemplateColumns:
+                        settings.showDowntimeAnalysis && settings.showWIPAging
+                          ? "55fr 45fr"
+                          : "1fr",
+                    }}
+                  >
+                    {settings.showDowntimeAnalysis && (
+                      <DowntimeAnalysis
+                        categories={filteredData.downtimeCategories}
+                        totalHrs={filteredData.totalDowntimeHrs}
+                        onCategoryClick={(cat) =>
+                          setDowntimePressModal({
+                            name: cat.name,
+                            color: cat.color,
+                          })
+                        }
+                      />
+                    )}
+                    {settings.showWIPAging && (
+                      <WIPAgingDonut
+                        data={filteredData.wipAgingData}
+                        onSegmentClick={(seg) =>
+                          setWIPPressModal({
+                            label: seg.label,
+                            color: seg.color,
+                            value: seg.value,
+                          })
+                        }
+                      />
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
-            {activeTab === "Production" && (
+            {safeActiveTab === "Production" && (
               <ProductionTab
                 key={filterBadge}
                 presses={backendPresses}
@@ -513,7 +595,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "OEE" && (
+            {safeActiveTab === "OEE" && (
               <OEETab
                 key={filterBadge}
                 presses={backendPresses}
@@ -529,7 +611,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Orders" && (
+            {safeActiveTab === "Orders" && (
               <OrdersTab
                 key={filterBadge}
                 orders={backendOrders}
@@ -539,7 +621,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Total Input" && (
+            {safeActiveTab === "Total Input" && (
               <TotalInputTab
                 key={filterBadge}
                 presses={presses}
@@ -548,7 +630,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Total Output" && (
+            {safeActiveTab === "Total Output" && (
               <TotalOutputTab
                 key={filterBadge}
                 presses={presses}
@@ -557,7 +639,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Total Scrap" && (
+            {safeActiveTab === "Total Scrap" && (
               <TotalScrapTab
                 key={filterBadge}
                 presses={presses}
@@ -566,7 +648,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Recovery" && (
+            {safeActiveTab === "Recovery" && (
               <RecoveryTab
                 key={filterBadge}
                 presses={presses}
@@ -575,7 +657,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "WIP Stock" && (
+            {safeActiveTab === "WIP Stock" && (
               <WIPStockTab
                 key={filterBadge}
                 presses={presses}
@@ -584,7 +666,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Contact Time" && (
+            {safeActiveTab === "Contact Time" && (
               <ContactTimeTab
                 key={filterBadge}
                 presses={presses}
@@ -593,7 +675,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Delay & Downtime" && (
+            {safeActiveTab === "Delay & Downtime" && (
               <DelayDowntimeTab
                 key={filterBadge}
                 presses={presses}
@@ -609,7 +691,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "PP (Plan/Act)" && (
+            {safeActiveTab === "PP (Plan/Act)" && (
               <PPPlanVsActualTab
                 key={filterBadge}
                 presses={presses}
@@ -617,7 +699,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Die (Load/Unload)" && (
+            {safeActiveTab === "Die (Load/Unload)" && (
               <DieLoadUnloadTab
                 key={filterBadge}
                 presses={presses}
@@ -625,7 +707,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Fleet OEE" && (
+            {safeActiveTab === "Fleet OEE" && (
               <FleetOEETab
                 key={filterBadge}
                 presses={presses}
@@ -634,7 +716,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Total UTIL" && (
+            {safeActiveTab === "Total UTIL" && (
               <TotalUtilTab
                 key={filterBadge}
                 presses={presses}
@@ -643,7 +725,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Energy" && (
+            {safeActiveTab === "Energy" && (
               <EnergyTab
                 key={filterBadge}
                 presses={presses}
@@ -652,7 +734,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Quality" && (
+            {safeActiveTab === "Quality" && (
               <QualityTab
                 key={filterBadge}
                 presses={backendPresses}
@@ -665,7 +747,7 @@ function AppInner() {
               />
             )}
 
-            {activeTab === "Gas Consumption" && (
+            {safeActiveTab === "Gas Consumption" && (
               <GasTab
                 key={filterBadge}
                 presses={presses}
@@ -678,46 +760,48 @@ function AppInner() {
       )}
 
       {/* Footer */}
-      <footer
-        className="border-t border-[#e2e8f0] px-3 py-1.5 flex items-center justify-between shrink-0"
-        style={{ background: "#f8fafc" }}
-      >
-        <div
-          className="flex items-center gap-3 text-[9px]"
-          style={{ color: "#64748b" }}
+      {settings.showFooter && (
+        <footer
+          className="border-t px-3 py-1.5 flex items-center justify-between shrink-0"
+          style={{ background: "#f7f8fa", borderColor: "#e4e7ed" }}
         >
-          <span>5 PRESSES MONITORED</span>
-          <span>·</span>
-          <span
-            className="font-bold px-1.5 py-0.5 rounded"
-            style={{ background: "#fef3c7", color: "#b45309" }}
+          <div
+            className="flex items-center gap-3 text-[9px]"
+            style={{ color: "#64748b" }}
           >
-            SHIFT {shift}
-          </span>
-          <span>·</span>
-          <span
-            className="font-bold px-1.5 py-0.5 rounded"
-            style={{ background: "#f0fdf4", color: "#15803d" }}
-          >
-            {period.toUpperCase()}
-          </span>
-          <span>·</span>
-          <span className="font-mono" style={{ color: "#3b82f6" }}>
-            LIVE
-          </span>
-        </div>
-        <div className="text-[9px]" style={{ color: "#64748b" }}>
-          © {new Date().getFullYear()}. Built with ♥ using{" "}
-          <a
-            href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-[#334155] transition-colors"
-          >
-            caffeine.ai
-          </a>
-        </div>
-      </footer>
+            <span>5 PRESSES MONITORED</span>
+            <span>·</span>
+            <span
+              className="font-bold px-1.5 py-0.5 rounded"
+              style={{ background: "#fef3c7", color: "#b45309" }}
+            >
+              SHIFT {shift}
+            </span>
+            <span>·</span>
+            <span
+              className="font-bold px-1.5 py-0.5 rounded"
+              style={{ background: "#f0fdf4", color: "#15803d" }}
+            >
+              {period.toUpperCase()}
+            </span>
+            <span>·</span>
+            <span className="font-mono" style={{ color: "#3b82f6" }}>
+              LIVE
+            </span>
+          </div>
+          <div className="text-[9px]" style={{ color: "#64748b" }}>
+            © {new Date().getFullYear()}. Built with ♥ using{" "}
+            <a
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-[#334155] transition-colors"
+            >
+              caffeine.ai
+            </a>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
@@ -725,7 +809,9 @@ function AppInner() {
 export default function App() {
   return (
     <FilterProvider>
-      <AppInner />
+      <SettingsProvider>
+        <AppInner />
+      </SettingsProvider>
     </FilterProvider>
   );
 }

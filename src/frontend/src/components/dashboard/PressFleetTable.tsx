@@ -1,9 +1,26 @@
-import { Activity } from "lucide-react";
 import type { PressData } from "../../mockData";
+import { GrafanaPanel } from "../grafana/GrafanaPanel";
+
+type FleetColumnVisibility = {
+  status?: boolean;
+  dieKgH?: boolean;
+  pressKgH?: boolean;
+  inputMt?: boolean;
+  outputMt?: boolean;
+  contactTime?: boolean;
+  downtime?: boolean;
+  ppPlan?: boolean;
+  ppActual?: boolean;
+  dieLoad?: boolean;
+  dieUnload?: boolean;
+  oee?: boolean;
+  recovery?: boolean;
+};
 
 interface PressFleetTableProps {
   presses: PressData[];
   onPressClick?: (press: PressData) => void;
+  visibleColumns?: FleetColumnVisibility;
 }
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -86,13 +103,13 @@ const TH = ({
   className?: string;
 }) => (
   <th
-    className={`px-2 py-2 text-[9px] font-bold uppercase whitespace-nowrap ${right ? "text-right" : center ? "text-center" : "text-left"} ${className}`}
+    className={`px-2 py-1.5 text-[9px] font-semibold uppercase whitespace-nowrap ${right ? "text-right" : center ? "text-center" : "text-left"} ${className}`}
     style={{
-      color: "#475569",
-      background: "#f1f5f9",
-      borderBottom: "2px solid #e2e8f0",
-      borderRight: "1px solid #e2e8f0",
-      letterSpacing: "0.07em",
+      color: "#6e7783",
+      background: "#f7f8fa",
+      borderBottom: "1px solid #e4e7ed",
+      borderRight: "1px solid #e4e7ed",
+      letterSpacing: "0.06em",
     }}
   >
     {children}
@@ -111,10 +128,11 @@ const TD = ({
   highlight?: boolean;
 }) => (
   <td
-    className={`px-2 py-2 text-[11px] border-b border-r border-[#f1f5f9] ${right ? "text-right" : center ? "text-center" : ""}`}
+    className={`px-2 py-1.5 text-[11px] border-b border-r ${right ? "text-right" : center ? "text-center" : ""}`}
     style={{
-      color: "#1e293b",
+      color: "#333d47",
       background: highlight ? "#fffbeb" : undefined,
+      borderColor: "#e4e7ed",
     }}
   >
     {children}
@@ -125,641 +143,599 @@ const TD = ({
 export function PressFleetTable({
   presses,
   onPressClick,
+  visibleColumns,
 }: PressFleetTableProps) {
+  // Helper to check if a column is visible (default true)
+  const show = (key: keyof FleetColumnVisibility) =>
+    visibleColumns ? visibleColumns[key] !== false : true;
   const runningCount = presses.filter((p) => p.status === "Running").length;
   const totalCount = presses.length;
 
-  return (
-    <div
-      className="flex flex-col rounded-lg border border-[#e2e8f0] overflow-hidden"
-      style={{ background: "#ffffff", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
-      data-ocid="fleet.table"
+  const runningBadge = (
+    <span
+      className="px-1.5 py-0.5 rounded text-[8px] font-bold"
+      style={{ background: "#dbeafe", color: "#1d4ed8" }}
     >
-      {/* ── Header Bar ── */}
-      <div
-        className="flex items-center justify-between px-4 py-2 border-b border-[#e2e8f0]"
-        style={{ background: "#f8fafc" }}
-      >
-        <div className="flex items-center gap-2">
-          <div
-            className="w-1 h-4 rounded-full"
-            style={{ background: "#3b82f6" }}
-          />
-          <Activity size={13} style={{ color: "#3b82f6" }} />
-          <span
-            className="text-[11px] font-black uppercase tracking-widest"
-            style={{ color: "#1e293b", letterSpacing: "0.12em" }}
-          >
-            Press Fleet Performance
-          </span>
-          <span
-            className="ml-2 px-2 py-0.5 rounded-full text-[9px] font-bold"
-            style={{
-              background: "#dbeafe",
-              color: "#1d4ed8",
-            }}
-          >
-            {runningCount}/{totalCount} Running
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{
-                background: "#22c55e",
-                animation: "pulse-dot 2s infinite",
-              }}
-            />
-            <span
-              className="text-[9px] font-semibold uppercase tracking-wider"
-              style={{ color: "#22c55e" }}
-            >
-              Live
-            </span>
-          </div>
-        </div>
-      </div>
+      {runningCount}/{totalCount} Running
+    </span>
+  );
 
-      {/* ── Scrollable Table ── */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse" style={{ minWidth: 1080 }}>
-          <thead>
-            <tr>
-              {/* Press identity */}
-              <TH className="border-r-2 border-[#d1d5db]">Press</TH>
-              {/* Columns in exact sequence from spec */}
-              <TH center>Status</TH>
-              <TH right>Die Kg/H</TH>
-              <TH right>Press Kg/H</TH>
-              <TH right>Input (Mt)</TH>
-              <TH right>Output (Mt)</TH>
-              <TH right>Contact Time</TH>
-              <TH right>Downtime</TH>
-              <TH right>PP Planned</TH>
-              <TH right>PP Actual</TH>
-              <TH right>Die Load</TH>
-              <TH right>Die Unload</TH>
-              <TH right>OEE %</TH>
-              <TH right>Recovery %</TH>
-            </tr>
-          </thead>
-          <tbody>
-            {presses.map((p, i) => {
-              const isDown = p.status === "Breakdown" || p.status === "Idle";
-              return (
-                <tr
-                  key={p.id}
-                  data-ocid={`fleet.row.${i + 1}`}
-                  className="hover:bg-blue-50 transition-colors"
-                  style={{
-                    background: i % 2 === 0 ? "#ffffff" : "#f9fafb",
-                  }}
-                >
-                  {/* ── Press Identity ── */}
-                  <td
-                    className="px-3 py-2 border-b border-r-2 border-[#e2e8f0] whitespace-nowrap"
-                    style={{ borderRightColor: "#d1d5db" }}
+  return (
+    <GrafanaPanel
+      title="Press Fleet Performance"
+      accentColor="#464c54"
+      badge={runningBadge}
+    >
+      <div className="-m-2" data-ocid="fleet.table">
+        {/* ── Scrollable Table ── */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse" style={{ minWidth: 1080 }}>
+            <thead>
+              <tr>
+                {/* Press identity */}
+                <TH className="border-r-2 border-[#d1d5db]">Press</TH>
+                {/* Columns in exact sequence from spec */}
+                {show("status") && <TH center>Status</TH>}
+                {show("dieKgH") && <TH right>Die Kg/H</TH>}
+                {show("pressKgH") && <TH right>Press Kg/H</TH>}
+                {show("inputMt") && <TH right>Input (Mt)</TH>}
+                {show("outputMt") && <TH right>Output (Mt)</TH>}
+                {show("contactTime") && <TH right>Contact Time</TH>}
+                {show("downtime") && <TH right>Downtime</TH>}
+                {show("ppPlan") && <TH right>PP Planned</TH>}
+                {show("ppActual") && <TH right>PP Actual</TH>}
+                {show("dieLoad") && <TH right>Die Load</TH>}
+                {show("dieUnload") && <TH right>Die Unload</TH>}
+                {show("oee") && <TH right>OEE %</TH>}
+                {show("recovery") && <TH right>Recovery %</TH>}
+              </tr>
+            </thead>
+            <tbody>
+              {presses.map((p, i) => {
+                const isDown = p.status === "Breakdown" || p.status === "Idle";
+                return (
+                  <tr
+                    key={p.id}
+                    data-ocid={`fleet.row.${i + 1}`}
+                    className="hover:bg-blue-50 transition-colors"
+                    style={{
+                      background: i % 2 === 0 ? "#ffffff" : "#f9fafb",
+                    }}
                   >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-1 h-8 rounded-full shrink-0"
-                        style={{
-                          background:
-                            p.status === "Running"
-                              ? "#22c55e"
-                              : p.status === "Breakdown"
-                                ? "#ef4444"
-                                : p.status === "Setup"
-                                  ? "#f59e0b"
-                                  : "#94a3b8",
-                        }}
-                      />
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => onPressClick?.(p)}
-                          className="font-black text-[13px] tracking-tight leading-none hover:underline transition-colors"
+                    {/* ── Press Identity ── */}
+                    <td
+                      className="px-3 py-2 border-b border-r-2 border-[#e2e8f0] whitespace-nowrap"
+                      style={{ borderRightColor: "#d1d5db" }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-1 h-8 rounded-full shrink-0"
                           style={{
-                            color: onPressClick ? "#1d4ed8" : "#0f172a",
-                            fontFamily: '"JetBrains Mono", monospace',
-                            cursor: onPressClick ? "pointer" : "default",
-                            background: "none",
-                            border: "none",
-                            padding: 0,
+                            background:
+                              p.status === "Running"
+                                ? "#22c55e"
+                                : p.status === "Breakdown"
+                                  ? "#ef4444"
+                                  : p.status === "Setup"
+                                    ? "#f59e0b"
+                                    : "#94a3b8",
                           }}
-                          data-ocid={`fleet.press_number.button.${i + 1}`}
-                        >
-                          {p.id}
-                        </button>
-                        <div
-                          className="text-[9px] font-semibold mt-0.5 leading-none"
-                          style={{ color: "#94a3b8" }}
-                        >
-                          {p.name} · {p.tonnage}T
-                        </div>
-                        <div
-                          className="text-[8px] mt-0.5 leading-none"
-                          style={{ color: "#cbd5e1" }}
-                        >
-                          {p.dieNumber} · {p.alloyGrade}
+                        />
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => onPressClick?.(p)}
+                            className="font-black text-[13px] tracking-tight leading-none hover:underline transition-colors"
+                            style={{
+                              color: onPressClick ? "#1d4ed8" : "#0f172a",
+                              fontFamily: '"JetBrains Mono", monospace',
+                              cursor: onPressClick ? "pointer" : "default",
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                            }}
+                            data-ocid={`fleet.press_number.button.${i + 1}`}
+                          >
+                            {p.id}
+                          </button>
+                          <div
+                            className="text-[8px] mt-0.5 leading-none"
+                            style={{ color: "#cbd5e1" }}
+                          >
+                            {p.dieNumber} · {p.alloyGrade}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </td>
+
+                    {/* ── Status ── */}
+                    {show("status") && (
+                      <TD center>
+                        <StatusBadge status={p.status} />
+                      </TD>
+                    )}
+
+                    {/* ── Die Kg/H ── */}
+                    {show("dieKgH") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px] font-semibold"
+                          style={{
+                            color: p.dieKgH > 0 ? "#1e3a5f" : "#cbd5e1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.dieKgH > 0 ? p.dieKgH.toLocaleString() : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Press Kg/H ── */}
+                    {show("pressKgH") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px] font-bold"
+                          style={{
+                            color: p.kgPerHour > 0 ? "#1d4ed8" : "#cbd5e1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.kgPerHour > 0 ? p.kgPerHour.toLocaleString() : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Input (Mt) ── */}
+                    {show("inputMt") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px] font-semibold"
+                          style={{
+                            color: p.inputMt > 0 ? "#0369a1" : "#cbd5e1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.inputMt > 0 ? p.inputMt.toFixed(2) : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Output (Mt) ── */}
+                    {show("outputMt") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px] font-semibold"
+                          style={{
+                            color: p.outputMt > 0 ? "#0f766e" : "#cbd5e1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.outputMt > 0 ? p.outputMt.toFixed(2) : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Contact Time ── */}
+                    {show("contactTime") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px]"
+                          style={{
+                            color: p.contactTime > 0 ? "#0f766e" : "#cbd5e1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.contactTime > 0 ? `${p.contactTime}s` : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Downtime ── */}
+                    {show("downtime") && (
+                      <TD right>
+                        <span
+                          className="font-mono tabular-nums text-[11px] font-semibold"
+                          style={{
+                            color:
+                              p.downtime > 60
+                                ? "#dc2626"
+                                : p.downtime > 10
+                                  ? "#d97706"
+                                  : "#64748b",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.downtime > 0 ? `${p.downtime} min` : "—"}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── PP Planned ── */}
+                    {show("ppPlan") && (
+                      <TD right highlight={!isDown}>
+                        <span
+                          className="text-[14px] font-black tabular-nums leading-none"
+                          style={{
+                            color: "#0369a1",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.ppPlanBillets}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── PP Actual ── */}
+                    {show("ppActual") && (
+                      <TD right highlight={!isDown}>
+                        <div className="flex flex-col items-end gap-0.5">
+                          {(() => {
+                            const pct =
+                              p.ppPlanBillets > 0
+                                ? Math.min(
+                                    (p.ppActBillets / p.ppPlanBillets) * 100,
+                                    100,
+                                  )
+                                : 0;
+                            const color =
+                              pct >= 90
+                                ? "#16a34a"
+                                : pct >= 70
+                                  ? "#d97706"
+                                  : "#dc2626";
+                            const bgTrack =
+                              pct >= 90
+                                ? "#dcfce7"
+                                : pct >= 70
+                                  ? "#fef3c7"
+                                  : "#fee2e2";
+                            return (
+                              <>
+                                <span
+                                  className="text-[14px] font-black tabular-nums leading-none"
+                                  style={{
+                                    color,
+                                    fontFamily: '"JetBrains Mono", monospace',
+                                  }}
+                                >
+                                  {p.ppActBillets}
+                                </span>
+                                <div
+                                  className="w-full h-1.5 rounded-full overflow-hidden mt-0.5"
+                                  style={{ background: bgTrack, minWidth: 40 }}
+                                >
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{
+                                      width: `${pct.toFixed(0)}%`,
+                                      background: color,
+                                    }}
+                                  />
+                                </div>
+                                <span
+                                  className="text-[9px] font-black tabular-nums mt-0.5"
+                                  style={{
+                                    color,
+                                    fontFamily: '"JetBrains Mono", monospace',
+                                  }}
+                                >
+                                  {pct.toFixed(0)}% extruded
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      </TD>
+                    )}
+
+                    {/* ── Die Load ── */}
+                    {show("dieLoad") && (
+                      <TD right>
+                        <span
+                          className="text-[13px] font-black tabular-nums leading-none"
+                          style={{
+                            color: "#1d4ed8",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.dieLoadCount}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── Die Unload ── */}
+                    {show("dieUnload") && (
+                      <TD right>
+                        <span
+                          className="text-[13px] font-black tabular-nums leading-none"
+                          style={{
+                            color: "#7c3aed",
+                            fontFamily: '"JetBrains Mono", monospace',
+                          }}
+                        >
+                          {p.dieUnloadCount}
+                        </span>
+                      </TD>
+                    )}
+
+                    {/* ── OEE % ── */}
+                    {show("oee") && (
+                      <TD right>
+                        <OEEBadge oee={p.oee} />
+                      </TD>
+                    )}
+
+                    {/* ── Recovery % ── */}
+                    {show("recovery") && (
+                      <TD right>
+                        <RecoveryBadge recovery={p.recovery} />
+                      </TD>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+
+            {/* ── Summary Footer ── */}
+            <tfoot>
+              <tr style={{ background: "#f1f5f9" }}>
+                <td
+                  className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border-t-2 border-[#e2e8f0]"
+                  style={{ color: "#475569" }}
+                >
+                  Fleet Total / Avg
+                </td>
+                {/* Status summary */}
+                {show("status") && (
+                  <td className="px-2 py-1.5 text-center border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-semibold"
+                      style={{ color: "#64748b" }}
+                    >
+                      {presses.filter((p) => p.status === "Running").length}R ·{" "}
+                      {presses.filter((p) => p.status === "Breakdown").length}D
+                      · {presses.filter((p) => p.status === "Idle").length}I ·{" "}
+                      {presses.filter((p) => p.status === "Setup").length}S
+                    </span>
                   </td>
-
-                  {/* ── Status ── */}
-                  <TD center>
-                    <StatusBadge status={p.status} />
-                  </TD>
-
-                  {/* ── Die Kg/H ── */}
-                  <TD right>
+                )}
+                {/* Die Kg/H avg */}
+                {show("dieKgH") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      className="text-[9px] font-semibold tabular-nums"
                       style={{
-                        color: p.dieKgH > 0 ? "#1e3a5f" : "#cbd5e1",
+                        color: "#1e3a5f",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.dieKgH > 0 ? p.dieKgH.toLocaleString() : "—"}
+                      {Math.round(
+                        presses
+                          .filter((p) => p.dieKgH > 0)
+                          .reduce((s, p) => s + p.dieKgH, 0) /
+                          Math.max(
+                            1,
+                            presses.filter((p) => p.dieKgH > 0).length,
+                          ),
+                      ).toLocaleString()}{" "}
+                      avg
                     </span>
-                  </TD>
-
-                  {/* ── Press Kg/H ── */}
-                  <TD right>
+                  </td>
+                )}
+                {/* Press Kg/H avg */}
+                {show("pressKgH") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px] font-bold"
+                      className="text-[9px] font-black tabular-nums"
                       style={{
-                        color: p.kgPerHour > 0 ? "#1d4ed8" : "#cbd5e1",
+                        color: "#1d4ed8",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.kgPerHour > 0 ? p.kgPerHour.toLocaleString() : "—"}
+                      {Math.round(
+                        presses.reduce((s, p) => s + p.kgPerHour, 0) /
+                          presses.length,
+                      ).toLocaleString()}{" "}
+                      avg
                     </span>
-                  </TD>
-
-                  {/* ── Input (Mt) ── */}
-                  <TD right>
+                  </td>
+                )}
+                {/* Input (Mt) total */}
+                {show("inputMt") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      className="text-[9px] font-black tabular-nums"
                       style={{
-                        color: p.inputMt > 0 ? "#0369a1" : "#cbd5e1",
+                        color: "#0369a1",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.inputMt > 0 ? p.inputMt.toFixed(2) : "—"}
+                      {presses.reduce((s, p) => s + p.inputMt, 0).toFixed(2)} MT
                     </span>
-                  </TD>
-
-                  {/* ── Output (Mt) ── */}
-                  <TD right>
+                  </td>
+                )}
+                {/* Output (Mt) total */}
+                {show("outputMt") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      className="text-[9px] font-black tabular-nums"
                       style={{
-                        color: p.outputMt > 0 ? "#0f766e" : "#cbd5e1",
+                        color: "#0f766e",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.outputMt > 0 ? p.outputMt.toFixed(2) : "—"}
+                      {presses.reduce((s, p) => s + p.outputMt, 0).toFixed(2)}{" "}
+                      MT
                     </span>
-                  </TD>
-
-                  {/* ── Contact Time ── */}
-                  <TD right>
+                  </td>
+                )}
+                {/* Contact Time avg */}
+                {show("contactTime") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px]"
+                      className="text-[9px] font-semibold"
+                      style={{ color: "#64748b" }}
+                    >
+                      {(
+                        presses
+                          .filter((p) => p.contactTime > 0)
+                          .reduce((s, p) => s + p.contactTime, 0) /
+                        Math.max(
+                          1,
+                          presses.filter((p) => p.contactTime > 0).length,
+                        )
+                      ).toFixed(0)}
+                      s avg
+                    </span>
+                  </td>
+                )}
+                {/* Downtime total */}
+                {show("downtime") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-semibold tabular-nums"
                       style={{
-                        color: p.contactTime > 0 ? "#0f766e" : "#cbd5e1",
+                        color: "#d97706",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.contactTime > 0 ? `${p.contactTime}s` : "—"}
+                      {presses.reduce((s, p) => s + p.downtime, 0).toFixed(0)}{" "}
+                      min
                     </span>
-                  </TD>
-
-                  {/* ── Downtime ── */}
-                  <TD right>
+                  </td>
+                )}
+                {/* PP Planned total */}
+                {show("ppPlan") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
                     <span
-                      className="font-mono tabular-nums text-[11px] font-semibold"
+                      className="text-[9px] font-semibold tabular-nums"
                       style={{
-                        color:
-                          p.downtime > 60
-                            ? "#dc2626"
-                            : p.downtime > 10
-                              ? "#d97706"
-                              : "#64748b",
+                        color: "#64748b",
                         fontFamily: '"JetBrains Mono", monospace',
                       }}
                     >
-                      {p.downtime > 0 ? `${p.downtime} min` : "—"}
+                      {presses.reduce((s, p) => s + p.ppPlanBillets, 0)}
                     </span>
-                  </TD>
+                  </td>
+                )}
+                {/* PP Actual total */}
+                {show("ppActual") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-black tabular-nums"
+                      style={{
+                        color: "#0369a1",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {presses.reduce((s, p) => s + p.ppActBillets, 0)}
+                    </span>
+                  </td>
+                )}
+                {/* Die Load total count */}
+                {show("dieLoad") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-black tabular-nums"
+                      style={{
+                        color: "#1d4ed8",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {presses.reduce((s, p) => s + p.dieLoadCount, 0)}
+                    </span>
+                  </td>
+                )}
+                {/* Die Unload total count */}
+                {show("dieUnload") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-black tabular-nums"
+                      style={{
+                        color: "#7c3aed",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {presses.reduce((s, p) => s + p.dieUnloadCount, 0)}
+                    </span>
+                  </td>
+                )}
+                {/* OEE avg */}
+                {show("oee") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-black tabular-nums"
+                      style={{
+                        color: "#0f766e",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {(
+                        presses.reduce((s, p) => s + p.oee, 0) / presses.length
+                      ).toFixed(1)}
+                      %
+                    </span>
+                  </td>
+                )}
+                {/* Recovery avg */}
+                {show("recovery") && (
+                  <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
+                    <span
+                      className="text-[9px] font-semibold tabular-nums"
+                      style={{
+                        color: "#16a34a",
+                        fontFamily: '"JetBrains Mono", monospace',
+                      }}
+                    >
+                      {(
+                        presses.reduce((s, p) => s + p.recovery, 0) /
+                        presses.length
+                      ).toFixed(1)}
+                      %
+                    </span>
+                  </td>
+                )}
+              </tr>
+            </tfoot>
+          </table>
+        </div>
 
-                  {/* ── PP Planned ── */}
-                  <TD right highlight={!isDown}>
-                    <div className="flex flex-col items-end gap-0.5">
-                      <span
-                        className="text-[11px] font-semibold tabular-nums"
-                        style={{
-                          color: "#64748b",
-                          fontFamily: '"JetBrains Mono", monospace',
-                        }}
-                      >
-                        {p.ppPlanBillets}
-                      </span>
-                      <span
-                        className="text-[8px] font-medium"
-                        style={{ color: "#94a3b8" }}
-                      >
-                        shots
-                      </span>
-                    </div>
-                  </TD>
-
-                  {/* ── PP Actual ── */}
-                  <TD right highlight={!isDown}>
-                    <div className="flex flex-col items-end gap-0.5">
-                      {(() => {
-                        const pct =
-                          p.ppPlanBillets > 0
-                            ? Math.min(
-                                (p.ppActBillets / p.ppPlanBillets) * 100,
-                                100,
-                              )
-                            : 0;
-                        const color =
-                          pct >= 90
-                            ? "#16a34a"
-                            : pct >= 70
-                              ? "#d97706"
-                              : "#dc2626";
-                        const bgTrack =
-                          pct >= 90
-                            ? "#dcfce7"
-                            : pct >= 70
-                              ? "#fef3c7"
-                              : "#fee2e2";
-                        return (
-                          <>
-                            <span
-                              className="text-[11px] font-black tabular-nums"
-                              style={{
-                                color,
-                                fontFamily: '"JetBrains Mono", monospace',
-                              }}
-                            >
-                              {p.ppActBillets}
-                            </span>
-                            <div
-                              className="w-full h-1 rounded-full overflow-hidden"
-                              style={{ background: bgTrack, minWidth: 36 }}
-                            >
-                              <div
-                                className="h-full rounded-full"
-                                style={{
-                                  width: `${pct.toFixed(0)}%`,
-                                  background: color,
-                                }}
-                              />
-                            </div>
-                            <span
-                              className="text-[8px] font-bold tabular-nums"
-                              style={{
-                                color,
-                                fontFamily: '"JetBrains Mono", monospace',
-                              }}
-                            >
-                              {pct.toFixed(0)}%
-                            </span>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </TD>
-
-                  {/* ── Die Load ── */}
-                  <TD right>
-                    {(() => {
-                      const loadColor =
-                        p.dieLoad > 20
-                          ? "#ef4444"
-                          : p.dieLoad > 15
-                            ? "#f59e0b"
-                            : "#22c55e";
-                      return (
-                        <div className="flex flex-col items-end gap-0.5">
-                          <div className="flex items-center gap-0.5">
-                            <span
-                              className="text-[8px] font-bold uppercase px-0.5 rounded"
-                              style={{
-                                color: "#ffffff",
-                                background: "#3b82f6",
-                              }}
-                            >
-                              L
-                            </span>
-                            <span
-                              className="text-[10px] font-mono tabular-nums font-semibold"
-                              style={{
-                                color: loadColor,
-                                fontFamily: '"JetBrains Mono", monospace',
-                              }}
-                            >
-                              {p.dieLoad > 0 ? `${p.dieLoad}m` : "—"}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </TD>
-
-                  {/* ── Die Unload ── */}
-                  <TD right>
-                    {(() => {
-                      const unloadColor =
-                        p.dieUnload > 15
-                          ? "#ef4444"
-                          : p.dieUnload > 10
-                            ? "#f59e0b"
-                            : "#22c55e";
-                      return (
-                        <div className="flex flex-col items-end gap-0.5">
-                          <div className="flex items-center gap-0.5">
-                            <span
-                              className="text-[8px] font-bold uppercase px-0.5 rounded"
-                              style={{
-                                color: "#ffffff",
-                                background: "#8b5cf6",
-                              }}
-                            >
-                              U
-                            </span>
-                            <span
-                              className="text-[10px] font-mono tabular-nums font-semibold"
-                              style={{
-                                color: unloadColor,
-                                fontFamily: '"JetBrains Mono", monospace',
-                              }}
-                            >
-                              {p.dieUnload > 0 ? `${p.dieUnload}m` : "—"}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </TD>
-
-                  {/* ── OEE % ── */}
-                  <TD right>
-                    <OEEBadge oee={p.oee} />
-                  </TD>
-
-                  {/* ── Recovery % ── */}
-                  <TD right>
-                    <RecoveryBadge recovery={p.recovery} />
-                  </TD>
-                </tr>
-              );
-            })}
-          </tbody>
-
-          {/* ── Summary Footer ── */}
-          <tfoot>
-            <tr style={{ background: "#f1f5f9" }}>
-              <td
-                className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border-t-2 border-[#e2e8f0]"
-                style={{ color: "#475569" }}
-              >
-                Fleet Total / Avg
-              </td>
-              {/* Status summary */}
-              <td className="px-2 py-1.5 text-center border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold"
-                  style={{ color: "#64748b" }}
-                >
-                  {presses.filter((p) => p.status === "Running").length}R ·{" "}
-                  {presses.filter((p) => p.status === "Breakdown").length}D ·{" "}
-                  {presses.filter((p) => p.status === "Idle").length}I ·{" "}
-                  {presses.filter((p) => p.status === "Setup").length}S
-                </span>
-              </td>
-              {/* Die Kg/H avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#1e3a5f",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {Math.round(
-                    presses
-                      .filter((p) => p.dieKgH > 0)
-                      .reduce((s, p) => s + p.dieKgH, 0) /
-                      Math.max(1, presses.filter((p) => p.dieKgH > 0).length),
-                  ).toLocaleString()}{" "}
-                  avg
-                </span>
-              </td>
-              {/* Press Kg/H avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-black tabular-nums"
-                  style={{
-                    color: "#1d4ed8",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {Math.round(
-                    presses.reduce((s, p) => s + p.kgPerHour, 0) /
-                      presses.length,
-                  ).toLocaleString()}{" "}
-                  avg
-                </span>
-              </td>
-              {/* Input (Mt) total */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-black tabular-nums"
-                  style={{
-                    color: "#0369a1",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {presses.reduce((s, p) => s + p.inputMt, 0).toFixed(2)} MT
-                </span>
-              </td>
-              {/* Output (Mt) total */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-black tabular-nums"
-                  style={{
-                    color: "#0f766e",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {presses.reduce((s, p) => s + p.outputMt, 0).toFixed(2)} MT
-                </span>
-              </td>
-              {/* Contact Time avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold"
-                  style={{ color: "#64748b" }}
-                >
-                  {(
-                    presses
-                      .filter((p) => p.contactTime > 0)
-                      .reduce((s, p) => s + p.contactTime, 0) /
-                    Math.max(1, presses.filter((p) => p.contactTime > 0).length)
-                  ).toFixed(0)}
-                  s avg
-                </span>
-              </td>
-              {/* Downtime total */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#d97706",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {presses.reduce((s, p) => s + p.downtime, 0).toFixed(0)} min
-                </span>
-              </td>
-              {/* PP Planned total */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#64748b",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {presses.reduce((s, p) => s + p.ppPlanBillets, 0)} shots
-                </span>
-              </td>
-              {/* PP Actual total */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-black tabular-nums"
-                  style={{
-                    color: "#0369a1",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {presses.reduce((s, p) => s + p.ppActBillets, 0)} shots
-                </span>
-              </td>
-              {/* Die Load avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#3b82f6",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {(
-                    presses
-                      .filter((p) => p.dieLoad > 0)
-                      .reduce((s, p) => s + p.dieLoad, 0) /
-                    Math.max(1, presses.filter((p) => p.dieLoad > 0).length)
-                  ).toFixed(0)}
-                  m avg
-                </span>
-              </td>
-              {/* Die Unload avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#8b5cf6",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {(
-                    presses
-                      .filter((p) => p.dieUnload > 0)
-                      .reduce((s, p) => s + p.dieUnload, 0) /
-                    Math.max(1, presses.filter((p) => p.dieUnload > 0).length)
-                  ).toFixed(0)}
-                  m avg
-                </span>
-              </td>
-              {/* OEE avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-black tabular-nums"
-                  style={{
-                    color: "#0f766e",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {(
-                    presses.reduce((s, p) => s + p.oee, 0) / presses.length
-                  ).toFixed(1)}
-                  %
-                </span>
-              </td>
-              {/* Recovery avg */}
-              <td className="px-2 py-1.5 text-right border-t-2 border-[#e2e8f0]">
-                <span
-                  className="text-[9px] font-semibold tabular-nums"
-                  style={{
-                    color: "#16a34a",
-                    fontFamily: '"JetBrains Mono", monospace',
-                  }}
-                >
-                  {(
-                    presses.reduce((s, p) => s + p.recovery, 0) / presses.length
-                  ).toFixed(1)}
-                  %
-                </span>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      {/* ── Legend Bar ── */}
-      <div
-        className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 border-t border-[#e2e8f0]"
-        style={{ background: "#f8fafc" }}
-      >
-        <span
-          className="text-[8px] font-black uppercase tracking-widest"
-          style={{ color: "#94a3b8" }}
+        {/* ── Legend Bar ── */}
+        <div
+          className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 py-1.5 border-t border-[#e2e8f0]"
+          style={{ background: "#f8fafc" }}
         >
-          Legend:
-        </span>
-        {[
-          { color: "#22c55e", label: "Good (≥90%)" },
-          { color: "#f59e0b", label: "Warning (70–89%)" },
-          { color: "#ef4444", label: "Critical (<70%)" },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ background: color }}
-            />
-            <span
-              className="text-[8px] font-semibold"
-              style={{ color: "#94a3b8" }}
-            >
-              {label}
-            </span>
-          </div>
-        ))}
-        <span className="text-[8px]" style={{ color: "#94a3b8" }}>
-          · PP Planned = Target billet/shot count · PP Actual = Achieved
-          billet/shot count · L = Die Load time (min) · U = Die Unload time
-          (min) · Contact Time = billet contact duration (sec)
-        </span>
+          <span
+            className="text-[8px] font-black uppercase tracking-widest"
+            style={{ color: "#94a3b8" }}
+          >
+            Legend:
+          </span>
+          {[
+            { color: "#22c55e", label: "Good (≥90%)" },
+            { color: "#f59e0b", label: "Warning (70–89%)" },
+            { color: "#ef4444", label: "Critical (<70%)" },
+          ].map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-1">
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ background: color }}
+              />
+              <span
+                className="text-[8px] font-semibold"
+                style={{ color: "#94a3b8" }}
+              >
+                {label}
+              </span>
+            </div>
+          ))}
+          <span className="text-[8px]" style={{ color: "#94a3b8" }}>
+            · PP Plan = Number of production plans planned for press · PP Actual
+            = Number of production plans extruded (with % achievement) · Contact
+            Time = billet contact duration (sec)
+          </span>
+        </div>
       </div>
-    </div>
+    </GrafanaPanel>
   );
 }

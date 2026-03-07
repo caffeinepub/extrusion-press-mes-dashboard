@@ -2,10 +2,10 @@ import {
   Brain,
   Calendar,
   ChevronDown,
-  Circle,
   Clock,
-  Grid3X3,
   LogOut,
+  RefreshCw,
+  Settings,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -16,10 +16,16 @@ import {
   useFilter,
 } from "../../context/FilterContext";
 
+type AppRole = "Operator" | "Management" | "CEO" | "Supervisor";
+
 interface TopNavBarProps {
-  role: "Operator" | "Management" | "CEO";
-  onRoleChange: (role: "Operator" | "Management" | "CEO") => void;
+  role: AppRole;
+  onRoleChange: (role: AppRole) => void;
   lastUpdated: Date;
+  onSettingsClick?: () => void;
+  showLiveClock?: boolean;
+  showLastUpdated?: boolean;
+  showAIBadge?: boolean;
 }
 
 const AI_INSIGHTS = [
@@ -49,61 +55,52 @@ const AI_INSIGHTS = [
   },
 ];
 
-const TYPE_STYLES: Record<string, { bar: string; dot: string; label: string }> =
-  {
-    critical: {
-      bar: "#ef4444",
-      dot: "bg-red-400",
-      label: "CRITICAL",
-    },
-    warning: {
-      bar: "#d97706",
-      dot: "bg-amber-400",
-      label: "WARNING",
-    },
-    success: {
-      bar: "#10b981",
-      dot: "bg-emerald-400",
-      label: "INSIGHT",
-    },
-    info: {
-      bar: "#3b82f6",
-      dot: "bg-blue-400",
-      label: "INFO",
-    },
-  };
+const TYPE_STYLES: Record<string, { bar: string; label: string }> = {
+  critical: { bar: "#ef4444", label: "CRITICAL" },
+  warning: { bar: "#d97706", label: "WARNING" },
+  success: { bar: "#10b981", label: "INSIGHT" },
+  info: { bar: "#3b82f6", label: "INFO" },
+};
 
 const SHIFTS: Shift[] = ["All", "A", "B", "C"];
-const PERIODS: Period[] = ["Today", "Week", "Month"];
 
-const SHIFT_COLORS: Record<
-  Shift,
-  { bg: string; text: string; border: string }
-> = {
-  All: { bg: "#f0fdf4", text: "#15803d", border: "#22c55e" },
-  A: { bg: "#fef3c7", text: "#b45309", border: "#f59e0b" },
-  B: { bg: "#dbeafe", text: "#1d4ed8", border: "#3b82f6" },
-  C: { bg: "#f3e8ff", text: "#7c3aed", border: "#8b5cf6" },
-};
+// Grafana-style pill button
+const pillStyle = {
+  border: "1px solid #d0d6df",
+  borderRadius: "3px",
+  background: "#f7f8fa",
+  color: "#333d47",
+  fontSize: "11px",
+  padding: "3px 8px",
+  cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  gap: "4px",
+  transition: "background 0.1s ease",
+  fontFamily: '"General Sans", system-ui, sans-serif',
+  fontWeight: 500,
+} as const;
 
-const PERIOD_COLORS: Record<
-  Period,
-  { bg: string; text: string; border: string }
-> = {
-  Today: { bg: "#f0fdf4", text: "#15803d", border: "#22c55e" },
-  Week: { bg: "#eff6ff", text: "#1d4ed8", border: "#3b82f6" },
-  Month: { bg: "#fff7ed", text: "#c2410c", border: "#f97316" },
-};
-
-export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
+export function TopNavBar({
+  role,
+  onRoleChange,
+  lastUpdated,
+  onSettingsClick,
+  showLiveClock = true,
+  showLastUpdated = true,
+  showAIBadge = true,
+}: TopNavBarProps) {
   const [time, setTime] = useState(new Date());
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [showShiftMenu, setShowShiftMenu] = useState(false);
   const [showPeriodMenu, setShowPeriodMenu] = useState(false);
+  const [showRefreshMenu, setShowRefreshMenu] = useState(false);
+  const [refreshInterval, setRefreshInterval] = useState<string>("Off");
   const roleMenuRef = useRef<HTMLDivElement>(null);
   const shiftMenuRef = useRef<HTMLDivElement>(null);
   const periodMenuRef = useRef<HTMLDivElement>(null);
+  const refreshMenuRef = useRef<HTMLDivElement>(null);
 
   const { shift, period, date, setShift, setPeriod, setDate } = useFilter();
 
@@ -130,6 +127,11 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
         !periodMenuRef.current.contains(e.target as Node)
       )
         setShowPeriodMenu(false);
+      if (
+        refreshMenuRef.current &&
+        !refreshMenuRef.current.contains(e.target as Node)
+      )
+        setShowRefreshMenu(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -137,15 +139,15 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
 
   const formatTime = (d: Date) => d.toTimeString().slice(0, 8);
 
-  const roleLabel =
-    role === "CEO"
-      ? "CEO View"
-      : role === "Operator"
-        ? "Operator View"
-        : "Management View";
+  const REFRESH_OPTIONS = ["Off", "5s", "30s", "1m", "5m"];
 
-  const shiftStyle = SHIFT_COLORS[shift];
-  const periodStyle = PERIOD_COLORS[period];
+  // Map period for display in time range pill
+  const timeRangeLabel =
+    period === "Today"
+      ? "Last 24h"
+      : period === "Week"
+        ? "Last 7d"
+        : "Last 30d";
 
   const handleLogout = () => {
     toast.info("No authentication configured. Login is not required.", {
@@ -157,284 +159,459 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
   return (
     <>
       <header
-        className="flex items-center justify-between px-3 py-1.5 border-b border-[#e2e8f0] shrink-0"
-        style={{ background: "#ffffff", minHeight: "42px" }}
+        className="flex items-center justify-between shrink-0"
+        style={{
+          background: "#ffffff",
+          borderBottom: "1px solid #e4e7ed",
+          minHeight: "44px",
+          padding: "0 10px",
+        }}
       >
-        {/* Left: Brand */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded flex items-center justify-center font-black text-[10px]"
-              style={{ background: "#dbeafe", color: "#1d4ed8" }}
-            >
-              MES
-            </div>
-            <div>
-              <div
-                className="font-black tracking-tight leading-none"
-                style={{
-                  color: "#1e3a5f",
-                  fontSize: "13px",
-                  letterSpacing: "-0.01em",
-                }}
-              >
-                BANCO ALUMINIUM
-              </div>
-              <div
-                className="text-[8px] font-black tracking-widest mt-0.5"
-                style={{ color: "#92650a", letterSpacing: "0.12em" }}
-              >
-                MES EXECUTIVE VIEW
-              </div>
-            </div>
-          </div>
-
-          <div className="w-px h-8 bg-[#e2e8f0] mx-1" />
-
-          {/* View label (non-clickable, reflects current role) */}
+        {/* LEFT: Brand */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* MES badge — Grafana orange */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold border"
+            className="flex items-center justify-center rounded font-black text-[10px] shrink-0"
             style={{
-              background: "#eff6ff",
-              borderColor: "#3b82f6",
-              color: "#1d4ed8",
+              background: "#ff6600",
+              color: "#ffffff",
+              width: "28px",
+              height: "28px",
+              letterSpacing: "-0.02em",
             }}
           >
-            <Grid3X3 size={12} />
-            {roleLabel}
+            MES
           </div>
+          <div>
+            <div
+              style={{
+                color: "#333d47",
+                fontSize: "12px",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                lineHeight: 1.2,
+                fontFamily: '"General Sans", system-ui, sans-serif',
+              }}
+            >
+              BANCO ALUMINIUM
+            </div>
+            <div
+              style={{
+                color: "#ff6600",
+                fontSize: "8px",
+                fontWeight: 700,
+                letterSpacing: "0.12em",
+                lineHeight: 1,
+              }}
+            >
+              MES EXECUTIVE VIEW
+            </div>
+          </div>
+          {/* Vertical divider */}
+          <div
+            style={{
+              width: "1px",
+              height: "28px",
+              background: "#e4e7ed",
+              margin: "0 4px",
+            }}
+          />
         </div>
 
-        {/* Center: Date / Shift selector / Period selector */}
-        <div className="flex items-center gap-2 text-[11px]">
-          {/* Date picker */}
-          <div
-            className="flex items-center gap-1 px-2 py-0.5 rounded border"
-            style={{ background: "#f8fafc", borderColor: "#cbd5e1" }}
-          >
-            <Calendar size={11} style={{ color: "#64748b", flexShrink: 0 }} />
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              data-ocid="filter.date.input"
-              title="Select Date"
-              className="font-mono font-semibold text-[11px] bg-transparent border-none outline-none cursor-pointer"
-              style={{ color: "#1e293b", minWidth: 0 }}
-            />
-          </div>
-
-          <div className="w-px h-5 bg-[#e2e8f0]" />
-
-          {/* Shift selector */}
-          <div className="relative" ref={shiftMenuRef}>
-            <button
-              type="button"
-              onClick={() => setShowShiftMenu((v) => !v)}
-              data-ocid="filter.shift.select"
-              className="flex items-center gap-1 px-2 py-0.5 rounded border font-bold text-[10px] transition-colors"
-              style={{
-                background: shiftStyle.bg,
-                color: shiftStyle.text,
-                borderColor: shiftStyle.border,
-              }}
-              title="Select Shift"
-            >
-              {shift === "All" ? "ALL SHIFTS" : `SHIFT ${shift}`}
-              <ChevronDown size={9} />
-            </button>
-            {showShiftMenu && (
-              <div
-                className="absolute top-full mt-1 left-0 rounded border shadow-lg z-50 w-28"
-                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
-              >
-                {SHIFTS.map((s) => {
-                  const sc = SHIFT_COLORS[s];
-                  return (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => {
-                        setShift(s);
-                        setShowShiftMenu(false);
-                      }}
-                      data-ocid={`filter.shift.${s.toLowerCase()}.button`}
-                      className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
-                      style={{
-                        color: s === shift ? sc.text : "#475569",
-                        fontWeight: s === shift ? 700 : 400,
-                      }}
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{
-                          background: sc.bg,
-                          border: `1px solid ${sc.border}`,
-                        }}
-                      />
-                      {s === "All" ? "All Shifts" : `Shift ${s}`}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Period selector */}
+        {/* CENTER: Grafana toolbar controls */}
+        <div className="flex items-center gap-1.5 flex-1 justify-center">
+          {/* Time Range Picker */}
           <div className="relative" ref={periodMenuRef}>
             <button
               type="button"
               onClick={() => setShowPeriodMenu((v) => !v)}
               data-ocid="filter.period.select"
-              className="flex items-center gap-1 px-2 py-0.5 rounded border font-bold text-[10px] transition-colors"
-              style={{
-                background: periodStyle.bg,
-                color: periodStyle.text,
-                borderColor: periodStyle.border,
+              title="Select Time Range"
+              style={{ ...pillStyle }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#e8edf2";
               }}
-              title="Select Period"
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#f7f8fa";
+              }}
             >
-              {period.toUpperCase()}
-              <ChevronDown size={9} />
+              <Calendar size={11} style={{ color: "#9ea6b3" }} />
+              <span>{timeRangeLabel}</span>
+              <ChevronDown size={9} style={{ color: "#9ea6b3" }} />
             </button>
             {showPeriodMenu && (
               <div
-                className="absolute top-full mt-1 left-0 rounded border shadow-lg z-50 w-28"
-                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
+                className="absolute top-full mt-1 left-0 z-50"
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e4e7ed",
+                  borderRadius: "3px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: "160px",
+                }}
               >
-                {PERIODS.map((p) => {
-                  const pc = PERIOD_COLORS[p];
-                  return (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setPeriod(p);
-                        setShowPeriodMenu(false);
-                      }}
-                      data-ocid={`filter.period.${p.toLowerCase()}.button`}
-                      className="w-full text-left px-3 py-1.5 text-[11px] hover:bg-[#f1f5f9] transition-colors flex items-center gap-2"
-                      style={{
-                        color: p === period ? pc.text : "#475569",
-                        fontWeight: p === period ? 700 : 400,
-                      }}
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full"
-                        style={{
-                          background: pc.bg,
-                          border: `1px solid ${pc.border}`,
-                        }}
-                      />
-                      {p}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Clock, Role, AI */}
-        <div className="flex items-center gap-3">
-          {/* Live clock */}
-          <div
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded"
-            style={{ background: "#f0fdf4", border: "1px solid #86efac" }}
-          >
-            <div className="relative flex items-center justify-center w-2 h-2">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ background: "#22c55e" }}
-              />
-              <div
-                className="absolute w-2 h-2 rounded-full animate-ping"
-                style={{ background: "#22c55e", opacity: 0.4 }}
-              />
-            </div>
-            <Clock size={10} style={{ color: "#16a34a" }} />
-            <span
-              className="font-mono font-black tabular-nums"
-              style={{ color: "#15803d", fontSize: "13px" }}
-            >
-              {formatTime(time)}
-            </span>
-          </div>
-
-          <div className="w-px h-6 bg-[#e2e8f0]" />
-
-          {/* Last updated */}
-          <div className="text-[10px]" style={{ color: "#64748b" }}>
-            <span>Updated: </span>
-            <span className="font-mono" style={{ color: "#475569" }}>
-              {formatTime(lastUpdated)}
-            </span>
-          </div>
-
-          <div className="w-px h-6 bg-[#e2e8f0]" />
-
-          {/* Role selector */}
-          <div className="relative" ref={roleMenuRef}>
-            <button
-              type="button"
-              onClick={() => setShowRoleMenu((v) => !v)}
-              className="flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-semibold border"
-              data-ocid="nav.role.select"
-              style={{
-                background: "#f8fafc",
-                borderColor: "#e2e8f0",
-                color: "#475569",
-              }}
-            >
-              <Circle size={8} style={{ fill: "#3b82f6", color: "#3b82f6" }} />
-              {role} View
-              <ChevronDown size={10} />
-            </button>
-            {showRoleMenu && (
-              <div
-                className="absolute right-0 top-full mt-1 w-36 rounded border shadow-lg z-50"
-                style={{ background: "#ffffff", borderColor: "#e2e8f0" }}
-              >
-                {(["Operator", "Management", "CEO"] as const).map((r) => (
+                {/* Date picker inline */}
+                <div
+                  className="flex items-center gap-2 px-3 py-2"
+                  style={{ borderBottom: "1px solid #e4e7ed" }}
+                >
+                  <Calendar size={10} style={{ color: "#9ea6b3" }} />
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    data-ocid="filter.date.input"
+                    className="bg-transparent border-none outline-none text-[10px] tabular-nums"
+                    style={{
+                      color: "#333d47",
+                      fontFamily: '"JetBrains Mono", monospace',
+                    }}
+                  />
+                </div>
+                {[
+                  { label: "Last 24h", value: "Today" as Period },
+                  { label: "Last 7d", value: "Week" as Period },
+                  { label: "Last 30d", value: "Month" as Period },
+                ].map((opt) => (
                   <button
-                    key={r}
+                    key={opt.value}
                     type="button"
                     onClick={() => {
-                      onRoleChange(r);
-                      setShowRoleMenu(false);
+                      setPeriod(opt.value);
+                      setShowPeriodMenu(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-[11px] hover:bg-[#f1f5f9] transition-colors"
-                    data-ocid={`nav.role.${r.toLowerCase()}.button`}
+                    data-ocid={`filter.period.${opt.value.toLowerCase()}.button`}
+                    className="w-full text-left px-3 py-1.5 text-[11px] transition-colors"
                     style={{
-                      color: r === role ? "#d97706" : "#475569",
+                      color: period === opt.value ? "#ff6600" : "#333d47",
+                      fontWeight: period === opt.value ? 700 : 400,
+                      background: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "#f7f8fa";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "transparent";
                     }}
                   >
-                    {r} View
+                    {opt.label}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
+          {/* Shift Selector */}
+          <div className="relative" ref={shiftMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowShiftMenu((v) => !v)}
+              data-ocid="filter.shift.select"
+              title="Select Shift"
+              style={{ ...pillStyle }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#e8edf2";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#f7f8fa";
+              }}
+            >
+              <span style={{ fontSize: "9px", color: "#9ea6b3" }}>SHIFT</span>
+              <span style={{ fontWeight: 700, color: "#ff6600" }}>
+                {shift === "All" ? "ALL" : shift}
+              </span>
+              <ChevronDown size={9} style={{ color: "#9ea6b3" }} />
+            </button>
+            {showShiftMenu && (
+              <div
+                className="absolute top-full mt-1 left-0 z-50"
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e4e7ed",
+                  borderRadius: "3px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: "120px",
+                }}
+              >
+                {SHIFTS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      setShift(s);
+                      setShowShiftMenu(false);
+                    }}
+                    data-ocid={`filter.shift.${s.toLowerCase()}.button`}
+                    className="w-full text-left px-3 py-1.5 text-[11px] transition-colors"
+                    style={{
+                      color: s === shift ? "#ff6600" : "#333d47",
+                      fontWeight: s === shift ? 700 : 400,
+                      background: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "#f7f8fa";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "transparent";
+                    }}
+                  >
+                    {s === "All" ? "All Shifts" : `Shift ${s}`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Auto-Refresh Dropdown */}
+          <div className="relative" ref={refreshMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowRefreshMenu((v) => !v)}
+              title="Auto-refresh interval"
+              style={{ ...pillStyle }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#e8edf2";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#f7f8fa";
+              }}
+            >
+              <RefreshCw
+                size={10}
+                style={{
+                  color: refreshInterval !== "Off" ? "#ff6600" : "#9ea6b3",
+                  animation:
+                    refreshInterval !== "Off"
+                      ? "spin 2s linear infinite"
+                      : "none",
+                }}
+              />
+              <span>{refreshInterval}</span>
+              <ChevronDown size={9} style={{ color: "#9ea6b3" }} />
+            </button>
+            {showRefreshMenu && (
+              <div
+                className="absolute top-full mt-1 left-0 z-50"
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e4e7ed",
+                  borderRadius: "3px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: "100px",
+                }}
+              >
+                {REFRESH_OPTIONS.map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      setRefreshInterval(opt);
+                      setShowRefreshMenu(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[11px] transition-colors"
+                    style={{
+                      color: refreshInterval === opt ? "#ff6600" : "#333d47",
+                      fontWeight: refreshInterval === opt ? 700 : 400,
+                      background: "transparent",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "#f7f8fa";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "transparent";
+                    }}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Role, AI, Settings, Clock, Logout */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Live clock */}
+          {showLiveClock && (
+            <div
+              className="flex items-center gap-1 px-2 py-0.5 rounded"
+              style={{ background: "#f0fdf4", border: "1px solid #86efac" }}
+            >
+              <div className="relative flex items-center justify-center w-2 h-2">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ background: "#22c55e" }}
+                />
+                <div
+                  className="absolute w-2 h-2 rounded-full animate-ping"
+                  style={{ background: "#22c55e", opacity: 0.4 }}
+                />
+              </div>
+              <Clock size={9} style={{ color: "#16a34a" }} />
+              <span
+                className="tabular-nums font-bold"
+                style={{
+                  color: "#15803d",
+                  fontSize: "11px",
+                  fontFamily: '"JetBrains Mono", monospace',
+                }}
+              >
+                {formatTime(time)}
+              </span>
+            </div>
+          )}
+
+          {showLastUpdated && (
+            <div style={{ fontSize: "9px", color: "#9ea6b3" }}>
+              <span
+                className="tabular-nums"
+                style={{ fontFamily: '"JetBrains Mono", monospace' }}
+              >
+                {formatTime(lastUpdated)}
+              </span>
+            </div>
+          )}
+
+          <div
+            style={{ width: "1px", height: "20px", background: "#e4e7ed" }}
+          />
+
+          {/* Role selector */}
+          <div className="relative" ref={roleMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowRoleMenu((v) => !v)}
+              data-ocid="nav.role.select"
+              style={{
+                ...pillStyle,
+                color: "#ff6600",
+                borderColor: "#ff660040",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#fff4ec";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "#f7f8fa";
+              }}
+            >
+              <span style={{ fontSize: "9px", color: "#9ea6b3" }}>VIEW</span>
+              <span style={{ fontWeight: 700 }}>{role}</span>
+              <ChevronDown size={9} style={{ color: "#9ea6b3" }} />
+            </button>
+            {showRoleMenu && (
+              <div
+                className="absolute right-0 top-full mt-1 z-50"
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e4e7ed",
+                  borderRadius: "3px",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  minWidth: "140px",
+                }}
+              >
+                {(["Operator", "Management", "CEO", "Supervisor"] as const).map(
+                  (r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        onRoleChange(r);
+                        setShowRoleMenu(false);
+                      }}
+                      data-ocid={`nav.role.${r.toLowerCase()}.button`}
+                      className="w-full text-left px-3 py-1.5 text-[11px] transition-colors"
+                      style={{
+                        color: r === role ? "#ff6600" : "#333d47",
+                        fontWeight: r === role ? 700 : 400,
+                        background: "transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.background = "#f7f8fa";
+                      }}
+                      onMouseLeave={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.background = "transparent";
+                      }}
+                    >
+                      {r} View
+                    </button>
+                  ),
+                )}
+              </div>
+            )}
+          </div>
+
           {/* AI Insight */}
+          {showAIBadge && (
+            <button
+              type="button"
+              onClick={() => setShowAIModal(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded font-bold text-[10px] transition-opacity hover:opacity-90"
+              data-ocid="nav.ai_insight.button"
+              style={{
+                background: "#7c3aed",
+                color: "#fff",
+                borderRadius: "3px",
+              }}
+            >
+              <Brain size={10} />
+              AI
+            </button>
+          )}
+
+          {/* Settings */}
           <button
             type="button"
-            onClick={() => setShowAIModal(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-bold transition-opacity hover:opacity-90"
-            data-ocid="nav.ai_insight.button"
-            style={{ background: "#7c3aed", color: "#fff" }}
+            onClick={onSettingsClick}
+            className="p-1.5 rounded transition-colors"
+            title="Dashboard Settings"
+            data-ocid="nav.settings.button"
+            style={{ color: "#9ea6b3" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "#f7f8fa";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "transparent";
+            }}
           >
-            <Brain size={11} />
-            AI Insight
+            <Settings size={13} />
           </button>
 
           <button
             type="button"
             onClick={handleLogout}
-            className="p-1.5 rounded hover:bg-[#f1f5f9] transition-colors"
+            className="p-1.5 rounded transition-colors"
             title="Logout"
+            style={{ color: "#9ea6b3" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "#f7f8fa";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background =
+                "transparent";
+            }}
           >
-            <LogOut size={13} style={{ color: "#64748b" }} />
+            <LogOut size={13} />
           </button>
         </div>
       </header>
@@ -462,49 +639,67 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
             maxHeight: "100%",
             margin: 0,
             border: "none",
-            background: "rgba(0,0,0,0.25)",
+            background: "rgba(0,0,0,0.2)",
           }}
         >
           <div
-            className="w-[420px] max-h-[80vh] overflow-y-auto rounded-lg border shadow-2xl flex flex-col"
+            className="w-[400px] max-h-[80vh] overflow-y-auto flex flex-col"
             style={{
               background: "#ffffff",
-              borderColor: "#7c3aed30",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+              border: "1px solid #e4e7ed",
+              borderRadius: "3px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
             }}
           >
             {/* Modal header */}
             <div
-              className="flex items-center justify-between px-4 py-3 border-b"
-              style={{ borderColor: "#ede9fe" }}
+              className="flex items-center justify-between px-4 py-2.5 border-b"
+              style={{ borderColor: "#e4e7ed", background: "#f7f8fa" }}
             >
+              {/* Left accent */}
               <div className="flex items-center gap-2">
                 <div
-                  className="w-6 h-6 rounded flex items-center justify-center"
-                  style={{ background: "#ede9fe" }}
-                >
-                  <Brain size={13} style={{ color: "#7c3aed" }} />
-                </div>
+                  style={{
+                    width: "3px",
+                    height: "24px",
+                    background: "#7c3aed",
+                    borderRadius: "1px",
+                  }}
+                />
                 <div>
                   <div
-                    className="text-xs font-bold"
-                    style={{ color: "#5b21b6" }}
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: "#464c54",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
                   >
-                    AI INSIGHT ENGINE
+                    AI Insight Engine
                   </div>
-                  <div className="text-[9px]" style={{ color: "#7c3aed" }}>
+                  <div style={{ fontSize: "9px", color: "#9ea6b3" }}>
                     {shift === "All" ? "All Shifts" : `Shift ${shift}`} ·{" "}
-                    {period} · {new Date().toLocaleTimeString()}
+                    {period}
                   </div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAIModal(false)}
-                className="p-1 rounded hover:bg-[#f1f5f9] transition-colors"
+                className="p-1 rounded transition-colors"
                 data-ocid="nav.ai_insight.close_button"
+                style={{ color: "#9ea6b3" }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "#f0f2f5";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "transparent";
+                }}
               >
-                <X size={14} style={{ color: "#64748b" }} />
+                <X size={13} />
               </button>
             </div>
 
@@ -515,29 +710,33 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
                 return (
                   <div
                     key={insight.text}
-                    className="rounded p-3 flex gap-3"
+                    className="rounded p-2.5 flex gap-2.5"
                     style={{
-                      background: `${insightStyle.bar}0d`,
-                      border: `1px solid ${insightStyle.bar}30`,
+                      background: `${insightStyle.bar}08`,
+                      border: `1px solid ${insightStyle.bar}25`,
                     }}
                   >
                     <div
-                      className="w-1.5 shrink-0 rounded-full mt-0.5"
+                      className="shrink-0 rounded-full mt-0.5"
                       style={{
+                        width: "3px",
                         backgroundColor: insightStyle.bar,
                         minHeight: "14px",
                       }}
                     />
                     <div className="flex-1">
                       <div
-                        className="text-[9px] font-black tracking-widest mb-1"
+                        className="text-[8px] font-black tracking-widest mb-1"
                         style={{ color: insightStyle.bar }}
                       >
                         {insightStyle.label}
                       </div>
                       <div
-                        className="text-xs leading-relaxed"
-                        style={{ color: "#374151" }}
+                        style={{
+                          fontSize: "11px",
+                          color: "#333d47",
+                          lineHeight: 1.4,
+                        }}
                       >
                         {insight.text}
                       </div>
@@ -549,8 +748,12 @@ export function TopNavBar({ role, onRoleChange, lastUpdated }: TopNavBarProps) {
 
             {/* Footer */}
             <div
-              className="px-4 py-2.5 border-t text-[9px] text-center"
-              style={{ borderColor: "#ede9fe", color: "#7c3aed" }}
+              className="px-4 py-2 border-t text-center"
+              style={{
+                borderColor: "#e4e7ed",
+                fontSize: "8px",
+                color: "#9ea6b3",
+              }}
             >
               Analysis based on live press data · Banco Aluminium MES
             </div>

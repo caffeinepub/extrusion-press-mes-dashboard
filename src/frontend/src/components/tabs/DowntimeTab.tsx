@@ -32,7 +32,7 @@ import {
 } from "recharts";
 import type { DowntimeEvent, Press } from "../../backend.d";
 import { formatDowntimeCategory, formatTime } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface DowntimeTabProps {
   presses: Press[];

@@ -22,7 +22,7 @@ import type { Alarm, MachineParameters, Press } from "../../backend.d";
 import { useMachineParameters } from "../../hooks/useQueries";
 import type { PressData } from "../../mockData";
 import { formatTime, getAlarmSeverityColor } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface MachineTabProps {
   presses: Press[];

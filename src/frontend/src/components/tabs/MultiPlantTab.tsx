@@ -30,7 +30,7 @@ import {
 import type { OEEData, Plant, Press, ProductionMetrics } from "../../backend.d";
 import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface MultiPlantTabProps {
   plants: Plant[];

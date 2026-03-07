@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PressData } from "../../mockData";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface TotalUtilTabProps {
   presses: PressData[];

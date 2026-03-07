@@ -31,7 +31,7 @@ import {
 import type { Press, QualityRecord } from "../../backend.d";
 import type { PressData } from "../../mockData";
 import { getLatest } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface QualityTabProps {
   presses: Press[];

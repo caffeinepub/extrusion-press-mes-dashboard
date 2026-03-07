@@ -27,16 +27,6 @@ interface WIPAgingPressModalProps {
   bucketTotalMT: number;
 }
 
-const STATUS_STYLES: Record<
-  PressWIPRow["status"],
-  { bg: string; color: string; label: string }
-> = {
-  Running: { bg: "#dcfce7", color: "#16a34a", label: "RUNNING" },
-  Idle: { bg: "#fef3c722", color: "#f59e0b", label: "IDLE" },
-  Breakdown: { bg: "#fecaca", color: "#ef4444", label: "BREAKDOWN" },
-  Setup: { bg: "#dbeafe", color: "#3b82f6", label: "SETUP" },
-};
-
 const PRESS_ACCENT_COLORS = [
   "#22c55e",
   "#3b82f6",
@@ -284,7 +274,7 @@ export function WIPAgingPressModal({
                       width: "100px",
                     }}
                   >
-                    {row.pressId} {row.pressName}
+                    {row.pressId}
                   </span>
                   <div
                     className="flex-1 h-3 rounded-sm overflow-hidden"
@@ -337,7 +327,6 @@ export function WIPAgingPressModal({
                   <tr style={{ background: "#f8fafc" }}>
                     {[
                       "PRESS",
-                      "STATUS",
                       "WIP (MT)",
                       "ORDERS",
                       "AVG AGING (HRS)",
@@ -361,7 +350,6 @@ export function WIPAgingPressModal({
                 </thead>
                 <tbody>
                   {pressRows.map((row, idx) => {
-                    const st = STATUS_STYLES[row.status];
                     return (
                       <tr
                         key={row.pressId}
@@ -387,23 +375,7 @@ export function WIPAgingPressModal({
                             >
                               {row.pressId}
                             </span>
-                            <span style={{ color: "#475569" }}>
-                              {row.pressName}
-                            </span>
                           </div>
-                        </td>
-                        {/* Status */}
-                        <td className="px-3 py-2.5">
-                          <span
-                            className="px-2 py-0.5 rounded text-[9px] font-bold tracking-wider"
-                            style={{
-                              background: st.bg,
-                              color: st.color,
-                              border: `1px solid ${st.color}30`,
-                            }}
-                          >
-                            {st.label}
-                          </span>
                         </td>
                         {/* WIP MT */}
                         <td
@@ -504,7 +476,6 @@ export function WIPAgingPressModal({
                     <td
                       className="px-3 py-2.5 font-bold uppercase tracking-wider text-[10px]"
                       style={{ color: bucketColor }}
-                      colSpan={2}
                     >
                       TOTAL / FLEET
                     </td>
@@ -564,25 +535,8 @@ export function WIPAgingPressModal({
             </div>
           </ScrollArea>
 
-          {/* Legend */}
+          {/* Timestamp */}
           <div className="flex items-center gap-4 mt-3 flex-wrap">
-            {(["Running", "Idle", "Breakdown", "Setup"] as const).map((s) => {
-              const st = STATUS_STYLES[s];
-              return (
-                <div key={s} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: st.color }}
-                  />
-                  <span
-                    className="text-[9px] font-bold uppercase tracking-wider"
-                    style={{ color: "#64748b" }}
-                  >
-                    {st.label}
-                  </span>
-                </div>
-              );
-            })}
             <span
               className="ml-auto text-[9px]"
               style={{

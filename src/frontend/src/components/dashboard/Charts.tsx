@@ -2,13 +2,13 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import type { PressData } from "../../mockData";
+import { GrafanaPanel } from "../grafana/GrafanaPanel";
 
 interface ProductionData {
   press: string;
@@ -24,32 +24,15 @@ interface PressChartsProps {
   presses: PressData[];
 }
 
-const chartBg = "#ffffff";
-const gridColor = "#e2e8f0";
-const textColor = "#64748b";
+const gridColor = "#e4e7ed";
 const axisStyle = {
   fontSize: 9,
-  fill: textColor,
+  fill: "#9ea6b3",
   fontFamily: '"JetBrains Mono", monospace',
 };
 
-const PanelHeader = ({ title }: { title: string }) => (
-  <div
-    className="flex items-center gap-2 px-3 py-1.5 border-b border-[#e2e8f0]"
-    style={{ background: "#f8fafc" }}
-  >
-    <div className="w-0.5 h-3 rounded-full" style={{ background: "#3b82f6" }} />
-    <span
-      className="text-[10px] font-bold uppercase tracking-widest"
-      style={{ color: "#64748b", letterSpacing: "0.1em" }}
-    >
-      {title}
-    </span>
-  </div>
-);
-
-// Custom tooltip
-const CustomTooltip = ({
+// Grafana-style dark tooltip
+const GrafanaTooltip = ({
   active,
   payload,
   label,
@@ -61,22 +44,39 @@ const CustomTooltip = ({
   if (!active || !payload?.length) return null;
   return (
     <div
-      className="rounded border px-2 py-1.5 text-[10px]"
+      className="rounded px-2.5 py-2 text-[10px]"
       style={{
-        background: "#ffffff",
-        borderColor: "#e2e8f0",
-        color: "#1e293b",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        background: "#1a1d23",
+        border: "1px solid #2d3139",
+        color: "#e0e4e8",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
       }}
     >
-      <div className="font-bold mb-1" style={{ color: "#64748b" }}>
+      <div
+        className="font-semibold mb-1.5"
+        style={{
+          color: "#9ea6b3",
+          fontSize: "9px",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
         {label}
       </div>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-sm" style={{ background: p.color }} />
-          <span style={{ color: "#64748b" }}>{p.name}:</span>
-          <span className="font-mono font-bold" style={{ color: p.color }}>
+        <div key={p.name} className="flex items-center gap-2 mb-0.5">
+          <div
+            className="w-2 h-2 rounded-sm shrink-0"
+            style={{ background: p.color }}
+          />
+          <span style={{ color: "#9ea6b3" }}>{p.name}:</span>
+          <span
+            className="font-bold"
+            style={{
+              color: p.color,
+              fontFamily: '"JetBrains Mono", monospace',
+            }}
+          >
             {p.value}
           </span>
         </div>
@@ -87,12 +87,8 @@ const CustomTooltip = ({
 
 export function ProductionVsPlanChart({ productionData }: ChartsProps) {
   return (
-    <div
-      className="flex flex-col rounded border border-[#e2e8f0]"
-      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <PanelHeader title="Production vs Plan (MT)" />
-      <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
+    <GrafanaPanel title="Production vs Plan (MT)" accentColor="#3b82f6">
+      <div style={{ minHeight: 168 }}>
         <ResponsiveContainer width="100%" height={168}>
           <BarChart
             data={productionData}
@@ -101,9 +97,10 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
             margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
           >
             <CartesianGrid
-              strokeDasharray="2 4"
+              strokeDasharray="3 5"
               stroke={gridColor}
               vertical={false}
+              strokeOpacity={0.7}
             />
             <XAxis
               dataKey="press"
@@ -119,18 +116,8 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
               width={28}
             />
             <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "#00000008" }}
-            />
-            <Legend
-              wrapperStyle={{
-                fontSize: 9,
-                paddingTop: 2,
-                paddingBottom: 4,
-                color: "#64748b",
-              }}
-              iconSize={7}
-              iconType="square"
+              content={<GrafanaTooltip />}
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
             />
             <Bar
               dataKey="actual"
@@ -142,106 +129,105 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
             <Bar
               dataKey="plan"
               name="Plan"
-              fill="#22c55e"
+              fill="#86c98a"
               radius={[2, 2, 0, 0]}
               maxBarSize={22}
             />
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </GrafanaPanel>
   );
 }
 
+// Bar Gauge style for OEE & Quality
 export function OEEQualityChart({ presses }: PressChartsProps) {
   const data = presses.map((p) => ({
-    press: `${p.id} (${p.name})`,
+    press: p.id,
     oee: Number.parseFloat(p.oee.toFixed(1)),
-    quality: Number.parseFloat((p.recovery * 1.02).toFixed(1)), // approx quality from recovery
   }));
 
+  const getOEEColor = (val: number) =>
+    val >= 85 ? "#10b981" : val >= 70 ? "#f59e0b" : "#ef4444";
+
   return (
-    <div
-      className="flex flex-col rounded border border-[#e2e8f0]"
-      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <PanelHeader title="OEE & Quality (%)" />
-      <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
-        <ResponsiveContainer width="100%" height={168}>
-          <BarChart
-            data={data}
-            barCategoryGap="30%"
-            barGap={2}
-            margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
-          >
-            <CartesianGrid
-              strokeDasharray="2 4"
-              stroke={gridColor}
-              vertical={false}
-            />
-            <XAxis
-              dataKey="press"
-              tick={axisStyle}
-              tickLine={false}
-              axisLine={{ stroke: gridColor }}
-              tickFormatter={(v: string) => v.split(" ")[0]}
-            />
-            <YAxis
-              tick={axisStyle}
-              tickLine={false}
-              axisLine={{ stroke: gridColor }}
-              width={28}
-              domain={[0, 100]}
-            />
-            <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "#00000008" }}
-            />
-            <Legend
-              wrapperStyle={{
-                fontSize: 9,
-                paddingTop: 2,
-                paddingBottom: 4,
-                color: "#64748b",
+    <GrafanaPanel title="OEE & Quality (%)" accentColor="#ff6600">
+      <div className="flex flex-col gap-2 pt-1" style={{ minHeight: 168 }}>
+        {data.map((d) => (
+          <div key={d.press} className="flex items-center gap-2">
+            <span
+              className="shrink-0 text-right"
+              style={{
+                width: "38px",
+                fontSize: "9px",
+                color: "#6e7783",
+                fontFamily: '"JetBrains Mono", monospace',
+                fontWeight: 600,
               }}
-              iconSize={7}
-              iconType="square"
-            />
-            <Bar
-              dataKey="oee"
-              name="OEE %"
-              fill="#ef4444"
-              radius={[2, 2, 0, 0]}
-              maxBarSize={22}
-            />
-            <Bar
-              dataKey="quality"
-              name="Quality %"
-              fill="#f97316"
-              radius={[2, 2, 0, 0]}
-              maxBarSize={22}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+            >
+              {d.press}
+            </span>
+            {/* Bar track */}
+            <div
+              className="flex-1 rounded overflow-hidden"
+              style={{ background: "#f0f2f5", height: "20px" }}
+            >
+              <div
+                className="h-full rounded flex items-center px-1.5 transition-all"
+                style={{
+                  width: `${Math.min(d.oee, 100)}%`,
+                  background: getOEEColor(d.oee),
+                  minWidth: "6px",
+                }}
+              />
+            </div>
+            <span
+              className="shrink-0 text-right tabular-nums font-bold"
+              style={{
+                width: "36px",
+                fontSize: "10px",
+                color: getOEEColor(d.oee),
+                fontFamily: '"JetBrains Mono", monospace',
+              }}
+            >
+              {d.oee}%
+            </span>
+          </div>
+        ))}
+        {/* OEE threshold legend */}
+        <div
+          className="flex items-center gap-3 pt-1"
+          style={{ borderTop: "1px solid #e4e7ed" }}
+        >
+          {[
+            { color: "#10b981", label: "≥85% Good" },
+            { color: "#f59e0b", label: "≥70% Warn" },
+            { color: "#ef4444", label: "<70% Crit" },
+          ].map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-1">
+              <div
+                className="w-2 h-2 rounded-sm"
+                style={{ background: color }}
+              />
+              <span style={{ fontSize: "8px", color: "#9ea6b3" }}>{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </GrafanaPanel>
   );
 }
 
 export function OutputRatesChart({ presses }: PressChartsProps) {
   const data = presses.map((p) => ({
-    press: `${p.id} (${p.name})`,
+    press: `${p.id}`,
     dieTarget: p.dieTarget,
     pressActual: p.kgPerHour,
   }));
 
   return (
-    <div
-      className="flex flex-col rounded border border-[#e2e8f0]"
-      style={{ background: chartBg, boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-    >
-      <PanelHeader title="Output Rates (Kg/H)" />
-      <div className="flex-1 px-2 pt-2 pb-0" style={{ minHeight: 170 }}>
+    <GrafanaPanel title="Output Rates (Kg/H)" accentColor="#9333ea">
+      <div style={{ minHeight: 168 }}>
         <ResponsiveContainer width="100%" height={168}>
           <BarChart
             data={data}
@@ -250,16 +236,16 @@ export function OutputRatesChart({ presses }: PressChartsProps) {
             margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
           >
             <CartesianGrid
-              strokeDasharray="2 4"
+              strokeDasharray="3 5"
               stroke={gridColor}
               vertical={false}
+              strokeOpacity={0.7}
             />
             <XAxis
               dataKey="press"
               tick={axisStyle}
               tickLine={false}
               axisLine={{ stroke: gridColor }}
-              tickFormatter={(v: string) => v.split(" ")[0]}
             />
             <YAxis
               tick={axisStyle}
@@ -268,18 +254,8 @@ export function OutputRatesChart({ presses }: PressChartsProps) {
               width={32}
             />
             <Tooltip
-              content={<CustomTooltip />}
-              cursor={{ fill: "#00000008" }}
-            />
-            <Legend
-              wrapperStyle={{
-                fontSize: 9,
-                paddingTop: 2,
-                paddingBottom: 4,
-                color: "#64748b",
-              }}
-              iconSize={7}
-              iconType="square"
+              content={<GrafanaTooltip />}
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
             />
             <Bar
               dataKey="dieTarget"
@@ -291,13 +267,13 @@ export function OutputRatesChart({ presses }: PressChartsProps) {
             <Bar
               dataKey="pressActual"
               name="Press Actual"
-              fill="#3b82f6"
+              fill="#9333ea"
               radius={[2, 2, 0, 0]}
               maxBarSize={22}
             />
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </GrafanaPanel>
   );
 }

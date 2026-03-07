@@ -6,13 +6,6 @@ interface OperatorViewProps {
 }
 
 function MachineCard({ press }: { press: PressData }) {
-  const statusColor = {
-    Running: "#22c55e",
-    Breakdown: "#ef4444",
-    Idle: "#94a3b8",
-    Setup: "#f59e0b",
-  }[press.status];
-
   return (
     <div
       className="rounded border p-3 flex flex-col gap-2"
@@ -22,22 +15,12 @@ function MachineCard({ press }: { press: PressData }) {
       <div className="flex items-start justify-between">
         <div>
           <div className="font-black text-sm" style={{ color: "#1e293b" }}>
-            {press.id} ({press.name})
+            {press.id}
           </div>
           <div className="text-[9px]" style={{ color: "#475569" }}>
             {press.tonnage} UST · Die {press.dieNumber}
           </div>
         </div>
-        <span
-          className="px-2 py-0.5 rounded text-[9px] font-bold uppercase border"
-          style={{
-            background: `${statusColor}20`,
-            borderColor: statusColor,
-            color: statusColor,
-          }}
-        >
-          {press.status}
-        </span>
       </div>
 
       {/* Params grid */}

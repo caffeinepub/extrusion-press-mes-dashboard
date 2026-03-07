@@ -11,7 +11,6 @@ import {
   TrendingUp,
   User,
   X,
-  Zap,
 } from "lucide-react";
 import {
   Bar,
@@ -183,30 +182,6 @@ function KVRow({
   );
 }
 
-function StatusChip({ status }: { status: PressData["status"] }) {
-  const cfg = {
-    Running: { bg: "#dcfce7", border: "#22c55e", text: "#16a34a" },
-    Breakdown: { bg: "#fee2e2", border: "#ef4444", text: "#dc2626" },
-    Idle: { bg: "#f1f5f9", border: "#94a3b8", text: "#64748b" },
-    Setup: { bg: "#fef3c7", border: "#f59e0b", text: "#d97706" },
-  }[status];
-  return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
-      style={{ background: cfg.bg, borderColor: cfg.border, color: cfg.text }}
-    >
-      <span
-        className="w-2 h-2 rounded-full"
-        style={{
-          background: cfg.text,
-          animation: status === "Running" ? "pulse-dot 2s infinite" : "none",
-        }}
-      />
-      {status}
-    </span>
-  );
-}
-
 function ColorBar({ pct, color }: { pct: number; color: string }) {
   const bg = `${color}22`;
   return (
@@ -315,13 +290,6 @@ export function PressDetailModal({
                 >
                   {press.id}
                 </span>
-                <span
-                  className="text-[13px] font-semibold"
-                  style={{ color: "#94a3b8" }}
-                >
-                  {press.name}
-                </span>
-                <StatusChip status={press.status} />
               </div>
               <div
                 className="text-[10px] font-semibold mt-0.5"
@@ -554,7 +522,7 @@ export function PressDetailModal({
             className="grid gap-3 mb-3 rounded-lg border border-[#e2e8f0] p-3"
             style={{
               background: "#ffffff",
-              gridTemplateColumns: "repeat(6, 1fr)",
+              gridTemplateColumns: "repeat(5, 1fr)",
             }}
           >
             {[
@@ -593,19 +561,6 @@ export function PressDetailModal({
                     ? `${press.dieLoad}m / ${press.dieUnload}m`
                     : "—",
                 color: "#3b82f6",
-              },
-              {
-                icon: <Zap size={14} />,
-                label: "Status",
-                value: press.status,
-                color:
-                  press.status === "Running"
-                    ? "#16a34a"
-                    : press.status === "Breakdown"
-                      ? "#dc2626"
-                      : press.status === "Setup"
-                        ? "#d97706"
-                        : "#64748b",
               },
             ].map((item) => (
               <div

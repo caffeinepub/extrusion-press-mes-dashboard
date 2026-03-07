@@ -31,7 +31,7 @@ import {
 import type { DieMaintenance, Order } from "../../backend.d";
 import { OrderStatus } from "../../backend.d";
 import { formatDate, getOrderStatusColor } from "../../utils/mes";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface OrdersTabProps {
   orders: Order[];

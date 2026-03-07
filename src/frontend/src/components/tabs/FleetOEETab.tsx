@@ -9,7 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { PressData } from "../../mockData";
-import { SubTabBar } from "../ui/SubTabBar";
+import { GrafanaSubTabBar as SubTabBar } from "../grafana/GrafanaSubTabBar";
 
 interface FleetOEETabProps {
   presses: PressData[];
@@ -298,7 +298,6 @@ export function FleetOEETab({
                 <tr style={{ background: "#f8fafc" }}>
                   {[
                     "PRESS",
-                    "STATUS",
                     "PLANNED (HRS)",
                     "RUN TIME (HRS)",
                     "DOWNTIME (HRS)",
@@ -344,35 +343,7 @@ export function FleetOEETab({
                         >
                           {row.pressId}
                         </span>
-                        <span style={{ color: "#475569" }}>
-                          {row.pressName}
-                        </span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span
-                        className={"px-2 py-0.5 rounded text-[9px] font-bold"}
-                        style={{
-                          background:
-                            row.status === "Running"
-                              ? "#dcfce7"
-                              : row.status === "Breakdown"
-                                ? "#fee2e2"
-                                : row.status === "Setup"
-                                  ? "#dbeafe"
-                                  : "#fef3c7",
-                          color:
-                            row.status === "Running"
-                              ? "#16a34a"
-                              : row.status === "Breakdown"
-                                ? "#dc2626"
-                                : row.status === "Setup"
-                                  ? "#2563eb"
-                                  : "#d97706",
-                        }}
-                      >
-                        {row.status.toUpperCase()}
-                      </span>
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums text-right"
@@ -430,7 +401,6 @@ export function FleetOEETab({
                 <tr style={{ background: "#f8fafc" }}>
                   {[
                     "PRESS",
-                    "STATUS",
                     "RATED SPEED (KG/H)",
                     "ACTUAL SPEED (KG/H)",
                     "PERFORMANCE %",
@@ -475,35 +445,7 @@ export function FleetOEETab({
                         >
                           {row.pressId}
                         </span>
-                        <span style={{ color: "#475569" }}>
-                          {row.pressName}
-                        </span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span
-                        className="px-2 py-0.5 rounded text-[9px] font-bold"
-                        style={{
-                          background:
-                            row.status === "Running"
-                              ? "#dcfce7"
-                              : row.status === "Breakdown"
-                                ? "#fee2e2"
-                                : row.status === "Setup"
-                                  ? "#dbeafe"
-                                  : "#fef3c7",
-                          color:
-                            row.status === "Running"
-                              ? "#16a34a"
-                              : row.status === "Breakdown"
-                                ? "#dc2626"
-                                : row.status === "Setup"
-                                  ? "#2563eb"
-                                  : "#d97706",
-                        }}
-                      >
-                        {row.status.toUpperCase()}
-                      </span>
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums text-right"
@@ -566,7 +508,6 @@ export function FleetOEETab({
                 <tr style={{ background: "#f8fafc" }}>
                   {[
                     "PRESS",
-                    "STATUS",
                     "TOTAL OUTPUT (KG)",
                     "REJECTED (KG)",
                     "FIRST PASS YIELD %",
@@ -612,35 +553,7 @@ export function FleetOEETab({
                         >
                           {row.pressId}
                         </span>
-                        <span style={{ color: "#475569" }}>
-                          {row.pressName}
-                        </span>
                       </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span
-                        className="px-2 py-0.5 rounded text-[9px] font-bold"
-                        style={{
-                          background:
-                            row.status === "Running"
-                              ? "#dcfce7"
-                              : row.status === "Breakdown"
-                                ? "#fee2e2"
-                                : row.status === "Setup"
-                                  ? "#dbeafe"
-                                  : "#fef3c7",
-                          color:
-                            row.status === "Running"
-                              ? "#16a34a"
-                              : row.status === "Breakdown"
-                                ? "#dc2626"
-                                : row.status === "Setup"
-                                  ? "#2563eb"
-                                  : "#d97706",
-                        }}
-                      >
-                        {row.status.toUpperCase()}
-                      </span>
                     </td>
                     <td
                       className="px-3 py-2.5 tabular-nums text-right"
