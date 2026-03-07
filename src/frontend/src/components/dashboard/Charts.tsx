@@ -140,79 +140,65 @@ export function ProductionVsPlanChart({ productionData }: ChartsProps) {
   );
 }
 
-// Bar Gauge style for OEE & Quality
+// Grouped bar chart for OEE & Quality (same style as Production vs Plan)
 export function OEEQualityChart({ presses }: PressChartsProps) {
   const data = presses.map((p) => ({
     press: p.id,
     oee: Number.parseFloat(p.oee.toFixed(1)),
+    quality: Number.parseFloat(Math.max(0, 100 - p.scrap * 10).toFixed(1)),
   }));
-
-  const getOEEColor = (val: number) =>
-    val >= 85 ? "#10b981" : val >= 70 ? "#f59e0b" : "#ef4444";
 
   return (
     <GrafanaPanel title="OEE & Quality (%)" accentColor="#ff6600">
-      <div className="flex flex-col gap-2 pt-1" style={{ minHeight: 168 }}>
-        {data.map((d) => (
-          <div key={d.press} className="flex items-center gap-2">
-            <span
-              className="shrink-0 text-right"
-              style={{
-                width: "38px",
-                fontSize: "9px",
-                color: "#6e7783",
-                fontFamily: '"JetBrains Mono", monospace',
-                fontWeight: 600,
-              }}
-            >
-              {d.press}
-            </span>
-            {/* Bar track */}
-            <div
-              className="flex-1 rounded overflow-hidden"
-              style={{ background: "#f0f2f5", height: "20px" }}
-            >
-              <div
-                className="h-full rounded flex items-center px-1.5 transition-all"
-                style={{
-                  width: `${Math.min(d.oee, 100)}%`,
-                  background: getOEEColor(d.oee),
-                  minWidth: "6px",
-                }}
-              />
-            </div>
-            <span
-              className="shrink-0 text-right tabular-nums font-bold"
-              style={{
-                width: "36px",
-                fontSize: "10px",
-                color: getOEEColor(d.oee),
-                fontFamily: '"JetBrains Mono", monospace',
-              }}
-            >
-              {d.oee}%
-            </span>
-          </div>
-        ))}
-        {/* OEE threshold legend */}
-        <div
-          className="flex items-center gap-3 pt-1"
-          style={{ borderTop: "1px solid #e4e7ed" }}
-        >
-          {[
-            { color: "#10b981", label: "≥85% Good" },
-            { color: "#f59e0b", label: "≥70% Warn" },
-            { color: "#ef4444", label: "<70% Crit" },
-          ].map(({ color, label }) => (
-            <div key={label} className="flex items-center gap-1">
-              <div
-                className="w-2 h-2 rounded-sm"
-                style={{ background: color }}
-              />
-              <span style={{ fontSize: "8px", color: "#9ea6b3" }}>{label}</span>
-            </div>
-          ))}
-        </div>
+      <div style={{ minHeight: 168 }}>
+        <ResponsiveContainer width="100%" height={168}>
+          <BarChart
+            data={data}
+            barCategoryGap="30%"
+            barGap={2}
+            margin={{ top: 4, right: 4, bottom: 0, left: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 5"
+              stroke={gridColor}
+              vertical={false}
+              strokeOpacity={0.7}
+            />
+            <XAxis
+              dataKey="press"
+              tick={axisStyle}
+              tickLine={false}
+              axisLine={{ stroke: gridColor }}
+              tickFormatter={(v: string) => v.split(" ")[0]}
+            />
+            <YAxis
+              tick={axisStyle}
+              tickLine={false}
+              axisLine={{ stroke: gridColor }}
+              width={28}
+              domain={[0, 100]}
+              tickFormatter={(v: number) => `${v}`}
+            />
+            <Tooltip
+              content={<GrafanaTooltip />}
+              cursor={{ fill: "rgba(0,0,0,0.04)" }}
+            />
+            <Bar
+              dataKey="oee"
+              name="OEE %"
+              fill="#ff6600"
+              radius={[2, 2, 0, 0]}
+              maxBarSize={22}
+            />
+            <Bar
+              dataKey="quality"
+              name="Quality %"
+              fill="#10b981"
+              radius={[2, 2, 0, 0]}
+              maxBarSize={22}
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </GrafanaPanel>
   );
