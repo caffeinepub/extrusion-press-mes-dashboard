@@ -15,6 +15,7 @@ import {
   type Shift,
   useFilter,
 } from "../../context/FilterContext";
+import { DataSourceBadge } from "./DataSourceBadge";
 
 type AppRole = "Operator" | "Management" | "CEO" | "Supervisor";
 
@@ -483,6 +484,9 @@ export function TopNavBar({
               </span>
             </div>
           )}
+
+          {/* Data Source Badge */}
+          <DataSourceBadge onSettingsClick={onSettingsClick} />
 
           <div
             style={{ width: "1px", height: "20px", background: "#e4e7ed" }}

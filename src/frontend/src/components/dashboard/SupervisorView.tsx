@@ -17,6 +17,10 @@ interface SupervisorViewProps {
   overdueDies: DieMaintenance[];
   onPressClick?: (press: PressData) => void;
   filterBadge?: string;
+  showKPISummary?: boolean;
+  showPressWise?: boolean;
+  showDieWise?: boolean;
+  showPPWise?: boolean;
 }
 
 type SubTab = "Press Wise" | "Die Wise" | "PP Wise";
@@ -1581,19 +1585,47 @@ export function SupervisorView({
   overdueDies,
   onPressClick,
   filterBadge,
+  showKPISummary = true,
+  showPressWise = true,
+  showDieWise = true,
+  showPPWise = true,
 }: SupervisorViewProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("Press Wise");
 
-  const subTabs: { id: SubTab; icon: React.ReactNode; accentColor: string }[] =
-    [
-      {
-        id: "Press Wise",
-        icon: <Activity size={12} />,
-        accentColor: "#3b82f6",
-      },
-      { id: "Die Wise", icon: <Layers size={12} />, accentColor: "#7c3aed" },
-      { id: "PP Wise", icon: <ListChecks size={12} />, accentColor: "#0d9488" },
-    ];
+  // Build visible sub-tabs based on settings
+  const allSubTabs: {
+    id: SubTab;
+    icon: React.ReactNode;
+    accentColor: string;
+    enabled: boolean;
+  }[] = [
+    {
+      id: "Press Wise",
+      icon: <Activity size={12} />,
+      accentColor: "#3b82f6",
+      enabled: showPressWise,
+    },
+    {
+      id: "Die Wise",
+      icon: <Layers size={12} />,
+      accentColor: "#7c3aed",
+      enabled: showDieWise,
+    },
+    {
+      id: "PP Wise",
+      icon: <ListChecks size={12} />,
+      accentColor: "#0d9488",
+      enabled: showPPWise,
+    },
+  ];
+
+  const visibleSubTabs = allSubTabs.filter((t) => t.enabled);
+
+  // If the current active sub-tab is hidden, switch to first visible
+  const effectiveActiveTab =
+    visibleSubTabs.find((t) => t.id === activeSubTab)?.id ??
+    visibleSubTabs[0]?.id ??
+    "Press Wise";
 
   return (
     <div
@@ -1629,53 +1661,75 @@ export function SupervisorView({
       </div>
 
       {/* KPI Cards */}
-      <KPISummary presses={presses} />
+      {showKPISummary && <KPISummary presses={presses} />}
 
       {/* Sub-tab selector */}
-      <div
-        className="flex items-end gap-0 px-3 border-b border-[#e2e8f0] shrink-0"
-        style={{ background: "#ffffff" }}
-        data-ocid="supervisor.subtab.panel"
-      >
-        {subTabs.map(({ id, icon, accentColor }) => {
-          const isActive = activeSubTab === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveSubTab(id)}
-              className="relative flex items-center gap-1.5 px-4 py-2 text-[11px] font-semibold tracking-wide transition-colors whitespace-nowrap shrink-0"
-              data-ocid={`supervisor.${id.toLowerCase().replace(/\s+/g, "_")}.tab`}
-              style={{
-                color: isActive ? accentColor : "#64748b",
-                background: isActive ? `${accentColor}0d` : "transparent",
-                borderBottom: isActive
-                  ? `2px solid ${accentColor}`
-                  : "2px solid transparent",
-                letterSpacing: "0.03em",
-              }}
-            >
-              <span style={{ color: isActive ? accentColor : "#94a3b8" }}>
-                {icon}
-              </span>
-              {id.toUpperCase()}
-            </button>
-          );
-        })}
-      </div>
+      {visibleSubTabs.length > 0 && (
+        <div
+          className="flex items-end gap-0 px-3 border-b border-[#e2e8f0] shrink-0"
+          style={{ background: "#ffffff" }}
+          data-ocid="supervisor.subtab.panel"
+        >
+          {visibleSubTabs.map(({ id, icon, accentColor }) => {
+            const isActive = effectiveActiveTab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveSubTab(id)}
+                className="relative flex items-center gap-1.5 px-4 py-2 text-[11px] font-semibold tracking-wide transition-colors whitespace-nowrap shrink-0"
+                data-ocid={`supervisor.${id.toLowerCase().replace(/\s+/g, "_")}.tab`}
+                style={{
+                  color: isActive ? accentColor : "#64748b",
+                  background: isActive ? `${accentColor}0d` : "transparent",
+                  borderBottom: isActive
+                    ? `2px solid ${accentColor}`
+                    : "2px solid transparent",
+                  letterSpacing: "0.03em",
+                }}
+              >
+                <span style={{ color: isActive ? accentColor : "#94a3b8" }}>
+                  {icon}
+                </span>
+                {id.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Tab Content */}
-      <div className="flex-1 pt-3" style={{ background: "#f8fafc" }}>
-        {activeSubTab === "Press Wise" && (
-          <PressWiseTable presses={presses} onPressClick={onPressClick} />
-        )}
-        {activeSubTab === "Die Wise" && (
-          <DieWiseTable presses={presses} overdueDies={overdueDies} />
-        )}
-        {activeSubTab === "PP Wise" && (
-          <PPWiseTable orders={orders} presses={presses} />
-        )}
-      </div>
+      {visibleSubTabs.length > 0 ? (
+        <div className="flex-1 pt-3" style={{ background: "#f8fafc" }}>
+          {effectiveActiveTab === "Press Wise" && showPressWise && (
+            <PressWiseTable presses={presses} onPressClick={onPressClick} />
+          )}
+          {effectiveActiveTab === "Die Wise" && showDieWise && (
+            <DieWiseTable presses={presses} overdueDies={overdueDies} />
+          )}
+          {effectiveActiveTab === "PP Wise" && showPPWise && (
+            <PPWiseTable orders={orders} presses={presses} />
+          )}
+        </div>
+      ) : (
+        <div
+          className="flex-1 flex items-center justify-center"
+          style={{ background: "#f8fafc" }}
+          data-ocid="supervisor.empty_state"
+        >
+          <div className="text-center">
+            <div
+              className="text-[13px] font-bold mb-1"
+              style={{ color: "#64748b" }}
+            >
+              All sections hidden
+            </div>
+            <div className="text-[11px]" style={{ color: "#94a3b8" }}>
+              Enable sections in Settings → Supervisor View Sections
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

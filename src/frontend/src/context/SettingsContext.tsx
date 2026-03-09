@@ -10,12 +10,22 @@ import {
 export type Role = "Operator" | "Management" | "CEO" | "Supervisor";
 
 export interface SettingsState {
-  // Dashboard Layout
+  // Dashboard Layout (Management)
   showKPIRibbon: boolean;
   showChartsRow: boolean;
   showPressFleetTable: boolean;
   showDowntimeAnalysis: boolean;
   showWIPAging: boolean;
+
+  // Supervisor View Sections
+  showSupervisorKPISummary: boolean;
+  showSupervisorPressWise: boolean;
+  showSupervisorDieWise: boolean;
+  showSupervisorPPWise: boolean;
+
+  // CEO View Sections
+  showCEOExecutiveSummary: boolean;
+  showCEOStrategicKPITable: boolean;
 
   // KPI Ribbon Tiles
   kpiTiles: {
@@ -75,6 +85,14 @@ export const DEFAULT_SETTINGS: SettingsState = {
   showPressFleetTable: true,
   showDowntimeAnalysis: true,
   showWIPAging: true,
+
+  showSupervisorKPISummary: true,
+  showSupervisorPressWise: true,
+  showSupervisorDieWise: true,
+  showSupervisorPPWise: true,
+
+  showCEOExecutiveSummary: true,
+  showCEOStrategicKPITable: true,
 
   kpiTiles: {
     totalInput: true,

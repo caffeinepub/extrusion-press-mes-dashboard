@@ -54,6 +54,22 @@ export interface DowntimeEvent {
   'category' : DowntimeCategory,
   'mttrHours' : number,
 }
+export interface LivePressRecord {
+  'id' : string,
+  'oee' : number,
+  'status' : string,
+  'downtimeMinutes' : bigint,
+  'contactTime' : number,
+  'ppPlanBillets' : bigint,
+  'kgPerHour' : number,
+  'dieUnloadCount' : bigint,
+  'dieLoadCount' : bigint,
+  'ppActBillets' : bigint,
+  'recovery' : number,
+  'dieKgH' : number,
+  'inputMt' : number,
+  'outputMt' : number,
+}
 export interface MachineParameters {
   'exitTemp' : number,
   'billetTemp' : number,
@@ -161,6 +177,21 @@ export interface QualityRecord {
   'surfaceDefectCount' : bigint,
 }
 export type Time = bigint;
+export interface TransformationInput {
+  'context' : Uint8Array,
+  'response' : http_request_result,
+}
+export interface TransformationOutput {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
+}
+export interface http_header { 'value' : string, 'name' : string }
+export interface http_request_result {
+  'status' : bigint,
+  'body' : Uint8Array,
+  'headers' : Array<http_header>,
+}
 export interface _SERVICE {
   'addAlarm' : ActorMethod<[Alarm], undefined>,
   'addCostMetrics' : ActorMethod<[CostMetrics], undefined>,
@@ -174,13 +205,17 @@ export interface _SERVICE {
   'addProductionMetrics' : ActorMethod<[ProductionMetrics], undefined>,
   'addQualityRecord' : ActorMethod<[QualityRecord], undefined>,
   'deletePress' : ActorMethod<[string], undefined>,
+  'fetchLiveData' : ActorMethod<[], [boolean, string]>,
   'getActiveAlarms' : ActorMethod<[], Array<Alarm>>,
   'getAllPlants' : ActorMethod<[], Array<Plant>>,
   'getAllPresses' : ActorMethod<[], Array<Press>>,
+  'getApiEndpoint' : ActorMethod<[], [string, boolean]>,
   'getDowntimeEventsByCategory' : ActorMethod<
     [DowntimeCategory],
     Array<DowntimeEvent>
   >,
+  'getLastFetchStatus' : ActorMethod<[], [string, bigint]>,
+  'getLivePressData' : ActorMethod<[], Array<LivePressRecord>>,
   'getMachineParameters' : ActorMethod<[string], MachineParameters>,
   'getOEEData' : ActorMethod<[string], Array<OEEData>>,
   'getOrdersByStatus' : ActorMethod<[OrderStatus], Array<Order>>,
@@ -191,6 +226,8 @@ export interface _SERVICE {
   'getProductionMetrics' : ActorMethod<[string], Array<ProductionMetrics>>,
   'getQualityRecordsByAlloy' : ActorMethod<[string], Array<QualityRecord>>,
   'seedSampleData' : ActorMethod<[], undefined>,
+  'setApiEndpoint' : ActorMethod<[string, boolean], undefined>,
+  'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updatePress' : ActorMethod<[Press], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

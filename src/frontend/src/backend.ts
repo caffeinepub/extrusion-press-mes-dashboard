@@ -89,6 +89,14 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface DieMaintenance {
+    shotsCompleted: bigint;
+    changeFrequency: bigint;
+    maintenanceDue: Time;
+    dieNo: string;
+    shotLife: bigint;
+    lastMaintenanceDate: Time;
+}
 export interface Alarm {
     id: string;
     pressId: string;
@@ -96,6 +104,11 @@ export interface Alarm {
     isActive: boolean;
     timestamp: Time;
     severity: AlarmSeverity;
+}
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
 }
 export type Time = bigint;
 export interface Plant {
@@ -137,6 +150,15 @@ export interface Order {
     alloyGrade: string;
     dieNo: string;
 }
+export interface http_header {
+    value: string;
+    name: string;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
 export interface Press {
     id: string;
     status: PressStatus;
@@ -169,6 +191,26 @@ export interface DowntimeEvent {
     timestamp: Time;
     category: DowntimeCategory;
     mttrHours: number;
+}
+export interface TransformationInput {
+    context: Uint8Array;
+    response: http_request_result;
+}
+export interface LivePressRecord {
+    id: string;
+    oee: number;
+    status: string;
+    downtimeMinutes: bigint;
+    contactTime: number;
+    ppPlanBillets: bigint;
+    kgPerHour: number;
+    dieUnloadCount: bigint;
+    dieLoadCount: bigint;
+    ppActBillets: bigint;
+    recovery: number;
+    dieKgH: number;
+    inputMt: number;
+    outputMt: number;
 }
 export interface OEEData {
     rejectionPct: number;
@@ -215,14 +257,6 @@ export interface QualityRecord {
     rootCauseSummary: string;
     surfaceDefectCount: bigint;
 }
-export interface DieMaintenance {
-    shotsCompleted: bigint;
-    changeFrequency: bigint;
-    maintenanceDue: Time;
-    dieNo: string;
-    shotLife: bigint;
-    lastMaintenanceDate: Time;
-}
 export enum AlarmSeverity {
     warning = "warning",
     info = "info",
@@ -261,10 +295,14 @@ export interface backendInterface {
     addProductionMetrics(metrics: ProductionMetrics): Promise<void>;
     addQualityRecord(record: QualityRecord): Promise<void>;
     deletePress(id: string): Promise<void>;
+    fetchLiveData(): Promise<[boolean, string]>;
     getActiveAlarms(): Promise<Array<Alarm>>;
     getAllPlants(): Promise<Array<Plant>>;
     getAllPresses(): Promise<Array<Press>>;
+    getApiEndpoint(): Promise<[string, boolean]>;
     getDowntimeEventsByCategory(category: DowntimeCategory): Promise<Array<DowntimeEvent>>;
+    getLastFetchStatus(): Promise<[string, bigint]>;
+    getLivePressData(): Promise<Array<LivePressRecord>>;
     getMachineParameters(pressId: string): Promise<MachineParameters>;
     getOEEData(pressId: string): Promise<Array<OEEData>>;
     getOrdersByStatus(status: OrderStatus): Promise<Array<Order>>;
@@ -275,6 +313,8 @@ export interface backendInterface {
     getProductionMetrics(pressId: string): Promise<Array<ProductionMetrics>>;
     getQualityRecordsByAlloy(alloy: string): Promise<Array<QualityRecord>>;
     seedSampleData(): Promise<void>;
+    setApiEndpoint(url: string, enabled: boolean): Promise<void>;
+    transform(input: TransformationInput): Promise<TransformationOutput>;
     updatePress(press: Press): Promise<void>;
 }
 import type { Alarm as _Alarm, AlarmSeverity as _AlarmSeverity, DowntimeCategory as _DowntimeCategory, DowntimeEvent as _DowntimeEvent, Order as _Order, OrderStatus as _OrderStatus, Press as _Press, PressStatus as _PressStatus, Time as _Time } from "./declarations/backend.did.d.ts";
@@ -448,6 +488,26 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async fetchLiveData(): Promise<[boolean, string]> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.fetchLiveData();
+                return [
+                    result[0],
+                    result[1]
+                ];
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.fetchLiveData();
+            return [
+                result[0],
+                result[1]
+            ];
+        }
+    }
     async getActiveAlarms(): Promise<Array<Alarm>> {
         if (this.processError) {
             try {
@@ -490,6 +550,26 @@ export class Backend implements backendInterface {
             return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getApiEndpoint(): Promise<[string, boolean]> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getApiEndpoint();
+                return [
+                    result[0],
+                    result[1]
+                ];
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getApiEndpoint();
+            return [
+                result[0],
+                result[1]
+            ];
+        }
+    }
     async getDowntimeEventsByCategory(arg0: DowntimeCategory): Promise<Array<DowntimeEvent>> {
         if (this.processError) {
             try {
@@ -502,6 +582,40 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getDowntimeEventsByCategory(to_candid_DowntimeCategory_n7(this._uploadFile, this._downloadFile, arg0));
             return from_candid_vec_n27(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getLastFetchStatus(): Promise<[string, bigint]> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getLastFetchStatus();
+                return [
+                    result[0],
+                    result[1]
+                ];
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getLastFetchStatus();
+            return [
+                result[0],
+                result[1]
+            ];
+        }
+    }
+    async getLivePressData(): Promise<Array<LivePressRecord>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getLivePressData();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getLivePressData();
+            return result;
         }
     }
     async getMachineParameters(arg0: string): Promise<MachineParameters> {
@@ -641,6 +755,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.seedSampleData();
+            return result;
+        }
+    }
+    async setApiEndpoint(arg0: string, arg1: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setApiEndpoint(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setApiEndpoint(arg0, arg1);
+            return result;
+        }
+    }
+    async transform(arg0: TransformationInput): Promise<TransformationOutput> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.transform(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.transform(arg0);
             return result;
         }
     }

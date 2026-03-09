@@ -1,6 +1,5 @@
 import List "mo:core/List";
 import Map "mo:core/Map";
-import Array "mo:core/Array";
 import Text "mo:core/Text";
 import Int "mo:core/Int";
 import Float "mo:core/Float";
@@ -8,7 +7,10 @@ import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
+import Outcall "http-outcalls/outcall";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   // Type Declarations
   public type PressStatus = { #running; #idle; #breakdown; #setup };
@@ -175,6 +177,23 @@ actor {
     onTimeDeliveryPct : Float;
   };
 
+  public type LivePressRecord = {
+    id : Text;
+    status : Text;
+    kgPerHour : Float;
+    oee : Float;
+    recovery : Float;
+    inputMt : Float;
+    outputMt : Float;
+    contactTime : Float;
+    dieKgH : Float;
+    ppPlanBillets : Int;
+    ppActBillets : Int;
+    dieLoadCount : Int;
+    dieUnloadCount : Int;
+    downtimeMinutes : Int;
+  };
+
   // Storage Maps
   let presses = Map.empty<Text, Press>();
   let productionMetrics = Map.empty<Text, ProductionMetrics>();
@@ -187,6 +206,13 @@ actor {
   let downtimeEvents = Map.empty<Text, DowntimeEvent>();
   let costMetrics = Map.empty<Text, CostMetrics>();
   let plants = Map.empty<Text, Plant>();
+
+  // Live Data Storage
+  let livePressData = Map.empty<Text, LivePressRecord>();
+  var apiEndpoint : Text = "";
+  var apiEnabled : Bool = false;
+  var lastFetchStatus : Text = "Never";
+  var lastFetchTimestamp : Int = 0;
 
   // Comparison functions
   module MachineParameters {
@@ -342,6 +368,51 @@ actor {
 
   public query ({ caller }) func getAllPlants() : async [Plant] {
     plants.values().toArray();
+  };
+
+  // Live Data Outcall Functions
+  public shared ({ caller }) func setApiEndpoint(url : Text, enabled : Bool) : async () {
+    apiEndpoint := url;
+    apiEnabled := enabled;
+  };
+
+  public query ({ caller }) func getApiEndpoint() : async (Text, Bool) {
+    (apiEndpoint, apiEnabled);
+  };
+
+  public query ({ caller }) func transform(input : Outcall.TransformationInput) : async Outcall.TransformationOutput {
+    Outcall.transform(input);
+  };
+
+  public shared ({ caller }) func fetchLiveData() : async (Bool, Text) {
+    if (not apiEnabled or apiEndpoint == "") {
+      lastFetchStatus := "API disabled or endpoint not set";
+      return (false, lastFetchStatus);
+    };
+
+    let url = apiEndpoint # "/api/press-data";
+    let response = await Outcall.httpGetRequest(url, [], transform);
+
+    switch (response) {
+      case ("") {
+        lastFetchStatus := "Fetch failed";
+        (false, lastFetchStatus);
+      };
+      case (data) {
+        lastFetchStatus := "Fetch successful";
+        livePressData.clear();
+        lastFetchTimestamp := Time.now();
+        (true, lastFetchStatus);
+      };
+    };
+  };
+
+  public query ({ caller }) func getLivePressData() : async [LivePressRecord] {
+    livePressData.values().toArray();
+  };
+
+  public query ({ caller }) func getLastFetchStatus() : async (Text, Int) {
+    (lastFetchStatus, lastFetchTimestamp);
   };
 
   // Seed Sample Data Function

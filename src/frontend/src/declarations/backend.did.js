@@ -167,6 +167,40 @@ export const QualityRecord = IDL.Record({
   'rootCauseSummary' : IDL.Text,
   'surfaceDefectCount' : IDL.Int,
 });
+export const LivePressRecord = IDL.Record({
+  'id' : IDL.Text,
+  'oee' : IDL.Float64,
+  'status' : IDL.Text,
+  'downtimeMinutes' : IDL.Int,
+  'contactTime' : IDL.Float64,
+  'ppPlanBillets' : IDL.Int,
+  'kgPerHour' : IDL.Float64,
+  'dieUnloadCount' : IDL.Int,
+  'dieLoadCount' : IDL.Int,
+  'ppActBillets' : IDL.Int,
+  'recovery' : IDL.Float64,
+  'dieKgH' : IDL.Float64,
+  'inputMt' : IDL.Float64,
+  'outputMt' : IDL.Float64,
+});
+export const http_header = IDL.Record({
+  'value' : IDL.Text,
+  'name' : IDL.Text,
+});
+export const http_request_result = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
+});
+export const TransformationInput = IDL.Record({
+  'context' : IDL.Vec(IDL.Nat8),
+  'response' : http_request_result,
+});
+export const TransformationOutput = IDL.Record({
+  'status' : IDL.Nat,
+  'body' : IDL.Vec(IDL.Nat8),
+  'headers' : IDL.Vec(http_header),
+});
 
 export const idlService = IDL.Service({
   'addAlarm' : IDL.Func([Alarm], [], []),
@@ -181,14 +215,18 @@ export const idlService = IDL.Service({
   'addProductionMetrics' : IDL.Func([ProductionMetrics], [], []),
   'addQualityRecord' : IDL.Func([QualityRecord], [], []),
   'deletePress' : IDL.Func([IDL.Text], [], []),
+  'fetchLiveData' : IDL.Func([], [IDL.Bool, IDL.Text], []),
   'getActiveAlarms' : IDL.Func([], [IDL.Vec(Alarm)], ['query']),
   'getAllPlants' : IDL.Func([], [IDL.Vec(Plant)], ['query']),
   'getAllPresses' : IDL.Func([], [IDL.Vec(Press)], ['query']),
+  'getApiEndpoint' : IDL.Func([], [IDL.Text, IDL.Bool], ['query']),
   'getDowntimeEventsByCategory' : IDL.Func(
       [DowntimeCategory],
       [IDL.Vec(DowntimeEvent)],
       ['query'],
     ),
+  'getLastFetchStatus' : IDL.Func([], [IDL.Text, IDL.Int], ['query']),
+  'getLivePressData' : IDL.Func([], [IDL.Vec(LivePressRecord)], ['query']),
   'getMachineParameters' : IDL.Func([IDL.Text], [MachineParameters], ['query']),
   'getOEEData' : IDL.Func([IDL.Text], [IDL.Vec(OEEData)], ['query']),
   'getOrdersByStatus' : IDL.Func([OrderStatus], [IDL.Vec(Order)], ['query']),
@@ -207,6 +245,12 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'seedSampleData' : IDL.Func([], [], []),
+  'setApiEndpoint' : IDL.Func([IDL.Text, IDL.Bool], [], []),
+  'transform' : IDL.Func(
+      [TransformationInput],
+      [TransformationOutput],
+      ['query'],
+    ),
   'updatePress' : IDL.Func([Press], [], []),
 });
 
@@ -372,6 +416,37 @@ export const idlFactory = ({ IDL }) => {
     'rootCauseSummary' : IDL.Text,
     'surfaceDefectCount' : IDL.Int,
   });
+  const LivePressRecord = IDL.Record({
+    'id' : IDL.Text,
+    'oee' : IDL.Float64,
+    'status' : IDL.Text,
+    'downtimeMinutes' : IDL.Int,
+    'contactTime' : IDL.Float64,
+    'ppPlanBillets' : IDL.Int,
+    'kgPerHour' : IDL.Float64,
+    'dieUnloadCount' : IDL.Int,
+    'dieLoadCount' : IDL.Int,
+    'ppActBillets' : IDL.Int,
+    'recovery' : IDL.Float64,
+    'dieKgH' : IDL.Float64,
+    'inputMt' : IDL.Float64,
+    'outputMt' : IDL.Float64,
+  });
+  const http_header = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
+  const http_request_result = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
+  });
+  const TransformationInput = IDL.Record({
+    'context' : IDL.Vec(IDL.Nat8),
+    'response' : http_request_result,
+  });
+  const TransformationOutput = IDL.Record({
+    'status' : IDL.Nat,
+    'body' : IDL.Vec(IDL.Nat8),
+    'headers' : IDL.Vec(http_header),
+  });
   
   return IDL.Service({
     'addAlarm' : IDL.Func([Alarm], [], []),
@@ -386,14 +461,18 @@ export const idlFactory = ({ IDL }) => {
     'addProductionMetrics' : IDL.Func([ProductionMetrics], [], []),
     'addQualityRecord' : IDL.Func([QualityRecord], [], []),
     'deletePress' : IDL.Func([IDL.Text], [], []),
+    'fetchLiveData' : IDL.Func([], [IDL.Bool, IDL.Text], []),
     'getActiveAlarms' : IDL.Func([], [IDL.Vec(Alarm)], ['query']),
     'getAllPlants' : IDL.Func([], [IDL.Vec(Plant)], ['query']),
     'getAllPresses' : IDL.Func([], [IDL.Vec(Press)], ['query']),
+    'getApiEndpoint' : IDL.Func([], [IDL.Text, IDL.Bool], ['query']),
     'getDowntimeEventsByCategory' : IDL.Func(
         [DowntimeCategory],
         [IDL.Vec(DowntimeEvent)],
         ['query'],
       ),
+    'getLastFetchStatus' : IDL.Func([], [IDL.Text, IDL.Int], ['query']),
+    'getLivePressData' : IDL.Func([], [IDL.Vec(LivePressRecord)], ['query']),
     'getMachineParameters' : IDL.Func(
         [IDL.Text],
         [MachineParameters],
@@ -416,6 +495,12 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'seedSampleData' : IDL.Func([], [], []),
+    'setApiEndpoint' : IDL.Func([IDL.Text, IDL.Bool], [], []),
+    'transform' : IDL.Func(
+        [TransformationInput],
+        [TransformationOutput],
+        ['query'],
+      ),
     'updatePress' : IDL.Func([Press], [], []),
   });
 };

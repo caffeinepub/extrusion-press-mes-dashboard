@@ -1,10 +1,12 @@
-import { ChevronDown, ChevronUp, Settings, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Database, Settings, X } from "lucide-react";
 import { useState } from "react";
+import { useLiveData } from "../../context/LiveDataContext";
 import {
   type Role,
   type SettingsState,
   useSettings,
 } from "../../context/SettingsContext";
+import { ApiConfigPanel } from "./ApiConfigPanel";
 
 interface SettingsPanelProps {
   open: boolean;
@@ -124,17 +126,61 @@ function Section({
   );
 }
 
+// ─── Info Note Box ────────────────────────────────────────────────────────────
+function InfoNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        background: "#fffbeb",
+        border: "1px solid #fde68a",
+        borderRadius: 4,
+        padding: "4px 8px",
+        fontSize: 9,
+        color: "#92400e",
+        marginBottom: 6,
+        lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Mgmt-only badge ──────────────────────────────────────────────────────────
+function MgmtBadge() {
+  return (
+    <span
+      style={{
+        background: "#fef3c7",
+        color: "#b45309",
+        fontSize: 8,
+        fontWeight: 700,
+        padding: "1px 4px",
+        borderRadius: 3,
+        marginLeft: 4,
+        verticalAlign: "middle",
+        display: "inline-block",
+        lineHeight: 1.6,
+      }}
+    >
+      MGMT
+    </span>
+  );
+}
+
 // ─── Toggle Row ───────────────────────────────────────────────────────────────
 function ToggleRow({
   label,
   value,
   onChange,
   ocid,
+  showMgmtBadge,
 }: {
   label: string;
   value: boolean;
   onChange: (v: boolean) => void;
   ocid?: string;
+  showMgmtBadge?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between py-1.5 gap-3">
@@ -143,6 +189,7 @@ function ToggleRow({
         style={{ color: "#475569" }}
       >
         {label}
+        {showMgmtBadge && <MgmtBadge />}
       </span>
       <Toggle value={value} onChange={onChange} ocid={ocid} />
     </div>
@@ -239,6 +286,49 @@ const ALL_TABS = [
   "Orders",
   "Quality",
 ] as const;
+
+// ─── Section with live mode badge support ─────────────────────────────────────
+function DataSourceSection({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(true);
+  const { isLiveMode, livePressList } = useLiveData();
+  const isActuallyLive = isLiveMode && livePressList.length > 0;
+
+  return (
+    <div className="border-b border-[#f1f5f9]">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[#f8fafc] transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <Database size={10} style={{ color: "#94a3b8" }} />
+          <span
+            className="text-[9px] font-black tracking-widest uppercase"
+            style={{ color: "#94a3b8", letterSpacing: "0.12em" }}
+          >
+            Data Source
+          </span>
+          <span
+            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold"
+            style={{
+              background: isActuallyLive ? "#22c55e" : "#94a3b8",
+              color: "#ffffff",
+              letterSpacing: "0.06em",
+            }}
+          >
+            {isActuallyLive ? "● LIVE" : "● MOCK"}
+          </span>
+        </div>
+        {open ? (
+          <ChevronUp size={12} style={{ color: "#94a3b8" }} />
+        ) : (
+          <ChevronDown size={12} style={{ color: "#94a3b8" }} />
+        )}
+      </button>
+      {open && <div className="px-4 pb-3">{children}</div>}
+    </div>
+  );
+}
 
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
@@ -389,39 +479,127 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
         {/* ── Scrollable Content ── */}
         <div className="flex-1 overflow-y-auto">
+          {/* ── 0. Data Source (API Config) ── */}
+          <DataSourceSection>
+            <ApiConfigPanel />
+          </DataSourceSection>
+
           {/* ── 1. Dashboard Layout ── */}
           <Section title="Dashboard Layout">
-            <ToggleRow
-              label="KPI Ribbon"
-              value={settings.showKPIRibbon}
-              onChange={(v) => updateSettings({ showKPIRibbon: v })}
-              ocid="settings.layout.show_kpi_ribbon.toggle"
-            />
-            <ToggleRow
-              label="Charts Row (3 Charts)"
-              value={settings.showChartsRow}
-              onChange={(v) => updateSettings({ showChartsRow: v })}
-              ocid="settings.layout.show_charts_row.toggle"
-            />
-            <ToggleRow
-              label="Press Fleet Table"
-              value={settings.showPressFleetTable}
-              onChange={(v) => updateSettings({ showPressFleetTable: v })}
-              ocid="settings.layout.show_press_fleet_table.toggle"
-            />
-            <ToggleRow
-              label="Downtime Analysis"
-              value={settings.showDowntimeAnalysis}
-              onChange={(v) => updateSettings({ showDowntimeAnalysis: v })}
-              ocid="settings.layout.show_downtime_analysis.toggle"
-            />
-            <ToggleRow
-              label="WIP Aging Analysis"
-              value={settings.showWIPAging}
-              onChange={(v) => updateSettings({ showWIPAging: v })}
-              ocid="settings.layout.show_wip_aging.toggle"
+            {activeSettingsRole !== "Management" && (
+              <InfoNote>
+                ⚠ Dashboard Layout sections only apply to the Management view
+              </InfoNote>
+            )}
+            <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
+              Toggle which sections are visible on the Dashboard tab
+            </p>
+            <ToggleGrid
+              scope="layout"
+              items={[
+                {
+                  key: "show_kpi_ribbon",
+                  label: "KPI Ribbon",
+                  value: settings.showKPIRibbon,
+                  onChange: (v) => updateSettings({ showKPIRibbon: v }),
+                },
+                {
+                  key: "show_charts_row",
+                  label: "Charts Row",
+                  value: settings.showChartsRow,
+                  onChange: (v) => updateSettings({ showChartsRow: v }),
+                },
+                {
+                  key: "show_press_fleet",
+                  label: "Press Fleet",
+                  value: settings.showPressFleetTable,
+                  onChange: (v) => updateSettings({ showPressFleetTable: v }),
+                },
+                {
+                  key: "show_downtime",
+                  label: "Downtime Analysis",
+                  value: settings.showDowntimeAnalysis,
+                  onChange: (v) => updateSettings({ showDowntimeAnalysis: v }),
+                },
+                {
+                  key: "show_wip_aging",
+                  label: "WIP Aging",
+                  value: settings.showWIPAging,
+                  onChange: (v) => updateSettings({ showWIPAging: v }),
+                },
+              ]}
             />
           </Section>
+
+          {/* ── Supervisor View Sections ── */}
+          {activeSettingsRole === "Supervisor" && (
+            <Section title="Supervisor View Sections">
+              <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
+                Toggle which sections are visible in the Supervisor view
+              </p>
+              <ToggleGrid
+                scope="supervisor_layout"
+                items={[
+                  {
+                    key: "kpi_summary",
+                    label: "KPI Summary Cards",
+                    value: settings.showSupervisorKPISummary,
+                    onChange: (v) =>
+                      updateSettings({ showSupervisorKPISummary: v }),
+                  },
+                  {
+                    key: "press_wise",
+                    label: "Press Wise Table",
+                    value: settings.showSupervisorPressWise,
+                    onChange: (v) =>
+                      updateSettings({ showSupervisorPressWise: v }),
+                  },
+                  {
+                    key: "die_wise",
+                    label: "Die Wise Table",
+                    value: settings.showSupervisorDieWise,
+                    onChange: (v) =>
+                      updateSettings({ showSupervisorDieWise: v }),
+                  },
+                  {
+                    key: "pp_wise",
+                    label: "PP Wise Table",
+                    value: settings.showSupervisorPPWise,
+                    onChange: (v) =>
+                      updateSettings({ showSupervisorPPWise: v }),
+                  },
+                ]}
+              />
+            </Section>
+          )}
+
+          {/* ── CEO View Sections ── */}
+          {activeSettingsRole === "CEO" && (
+            <Section title="CEO View Sections">
+              <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
+                Toggle which sections are visible in the CEO view
+              </p>
+              <ToggleGrid
+                scope="ceo_layout"
+                items={[
+                  {
+                    key: "executive_summary",
+                    label: "Executive Summary",
+                    value: settings.showCEOExecutiveSummary,
+                    onChange: (v) =>
+                      updateSettings({ showCEOExecutiveSummary: v }),
+                  },
+                  {
+                    key: "strategic_kpi_table",
+                    label: "Strategic KPI Table",
+                    value: settings.showCEOStrategicKPITable,
+                    onChange: (v) =>
+                      updateSettings({ showCEOStrategicKPITable: v }),
+                  },
+                ]}
+              />
+            </Section>
+          )}
 
           {/* ── 2. KPI Ribbon Tiles ── */}
           <Section title="KPI Ribbon Tiles">
@@ -509,6 +687,11 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
           {/* ── 3. Press Fleet Columns ── */}
           <Section title="Press Fleet Columns">
+            {activeSettingsRole !== "Management" && (
+              <InfoNote>
+                ⚠ Press Fleet table only visible in Management view
+              </InfoNote>
+            )}
             <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
               Show or hide columns in Press Fleet Performance table
             </p>
@@ -599,6 +782,11 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
           {/* ── 4. Tab Visibility ── */}
           <Section title="Tab Visibility">
+            {activeSettingsRole !== "Management" && (
+              <InfoNote>
+                ⚠ Tab Visibility only applies to Management view
+              </InfoNote>
+            )}
             <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
               Dashboard tab is always visible. Toggle other tabs on/off.
             </p>
@@ -624,6 +812,9 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             <p className="text-[9px] mb-2" style={{ color: "#94a3b8" }}>
               These apply on next page load, not the current session.
             </p>
+            <InfoNote>
+              ℹ Default Shift and Period are shared across all views
+            </InfoNote>
             <SelectRow
               label="Default Role"
               value={settings.defaultRole}

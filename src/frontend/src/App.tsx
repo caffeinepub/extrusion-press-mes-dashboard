@@ -61,6 +61,7 @@ import {
 } from "./hooks/useQueries";
 
 import { FilterProvider, useFilter } from "./context/FilterContext";
+import { LiveDataProvider, useLiveData } from "./context/LiveDataContext";
 import { SettingsProvider, useSettings } from "./context/SettingsContext";
 import type { Role as SettingsRole } from "./context/SettingsContext";
 
@@ -120,12 +121,32 @@ const MANAGEMENT_TABS: ManagementTab[] = [
   "Quality",
 ];
 
-// ─── Inner app (has access to FilterContext and SettingsContext) ─────────────
+// ─── Inner app (has access to FilterContext, SettingsContext, and LiveDataContext) ─────────────
 function AppInner() {
   const { shift, period, date } = useFilter();
   const { getViewSettings, setActiveSettingsRole } = useSettings();
+  const { isLiveMode, livePressList } = useLiveData();
 
-  const [role, setRole] = useState<Role>("Management");
+  const [role, setRole] = useState<Role>(() => {
+    // Initialize from the Management view's defaultRole setting in localStorage
+    try {
+      const raw = localStorage.getItem("mes_settings_management");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { defaultRole?: string };
+        if (
+          parsed?.defaultRole &&
+          ["Operator", "Management", "CEO", "Supervisor"].includes(
+            parsed.defaultRole,
+          )
+        ) {
+          return parsed.defaultRole as Role;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+    return "Management";
+  });
   // Use the current dashboard role's settings for rendering
   const settings = getViewSettings(role as SettingsRole);
 
@@ -173,12 +194,54 @@ function AppInner() {
   const [presses, setPresses] = useState<PressData[]>(filteredData.presses);
   const [kpis, setKpis] = useState({ ...filteredData.kpis });
 
-  // Reset press/kpi state when filter changes
+  // When live mode is active and we have live press data, merge it in
   useEffect(() => {
-    setPresses(filteredData.presses);
-    setKpis({ ...filteredData.kpis });
-    setLastUpdated(new Date());
-  }, [filteredData]);
+    if (isLiveMode && livePressList.length > 0) {
+      setPresses(livePressList);
+      // Recalculate KPIs from live press list
+      const totalInput = livePressList.reduce((s, p) => s + p.inputMt, 0);
+      const totalOutput = livePressList.reduce((s, p) => s + p.outputMt, 0);
+      const totalScrap = livePressList.reduce(
+        (s, p) => s + Math.max(0, p.inputMt - p.outputMt),
+        0,
+      );
+      const avgRecovery =
+        livePressList.reduce((s, p) => s + p.recovery, 0) /
+        livePressList.length;
+      const avgOEE =
+        livePressList.reduce((s, p) => s + p.oee, 0) / livePressList.length;
+      const avgContactTime =
+        livePressList.reduce((s, p) => s + p.contactTime, 0) /
+        livePressList.length;
+      const totalDowntime = livePressList.reduce((s, p) => s + p.downtime, 0);
+      const avgPressKgH =
+        livePressList.reduce((s, p) => s + p.kgPerHour, 0) /
+        livePressList.length;
+
+      setKpis((prev) => ({
+        ...prev,
+        totalInput: Number.parseFloat(totalInput.toFixed(2)),
+        totalOutput: Number.parseFloat(totalOutput.toFixed(2)),
+        totalScrap: Number.parseFloat(totalScrap.toFixed(2)),
+        totalRecovery: Number.parseFloat(avgRecovery.toFixed(2)),
+        fleetOEE: Number.parseFloat(avgOEE.toFixed(2)),
+        contactTime: Number.parseFloat(avgContactTime.toFixed(2)),
+        totalDelay: Number.parseFloat((totalDowntime / 60).toFixed(2)),
+        pressKgH: Number.parseFloat(avgPressKgH.toFixed(2)),
+        totalUtil: Number.parseFloat(Math.min(99, avgOEE * 1.05).toFixed(2)),
+      }));
+      setLastUpdated(new Date());
+    }
+  }, [isLiveMode, livePressList]);
+
+  // Reset press/kpi state when filter changes (only when not in live mode)
+  useEffect(() => {
+    if (!isLiveMode || livePressList.length === 0) {
+      setPresses(filteredData.presses);
+      setKpis({ ...filteredData.kpis });
+      setLastUpdated(new Date());
+    }
+  }, [filteredData, isLiveMode, livePressList.length]);
 
   // Simulate live data refresh every 30 seconds (only when autoRefresh is enabled)
   useEffect(() => {
@@ -452,6 +515,8 @@ function AppInner() {
             fleetOEE={kpis.fleetOEE}
             totalOutput={kpis.totalOutput}
             fleetUtil={kpis.totalUtil}
+            showExecutiveSummary={settings.showCEOExecutiveSummary}
+            showStrategicKPITable={settings.showCEOStrategicKPITable}
           />
         </div>
       ) : role === "Supervisor" ? (
@@ -465,6 +530,10 @@ function AppInner() {
             overdueDies={backendOverdueDies}
             onPressClick={(p) => setSelectedPress(p)}
             filterBadge={filterBadge}
+            showKPISummary={settings.showSupervisorKPISummary}
+            showPressWise={settings.showSupervisorPressWise}
+            showDieWise={settings.showSupervisorDieWise}
+            showPPWise={settings.showSupervisorPPWise}
           />
         </div>
       ) : (
@@ -810,7 +879,9 @@ export default function App() {
   return (
     <FilterProvider>
       <SettingsProvider>
-        <AppInner />
+        <LiveDataProvider>
+          <AppInner />
+        </LiveDataProvider>
       </SettingsProvider>
     </FilterProvider>
   );
